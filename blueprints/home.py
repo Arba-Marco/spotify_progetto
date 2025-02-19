@@ -33,6 +33,13 @@ def playlist_tracks(playlist_id):
     return render_template('playlist_tracks.html', tracks=tracks)
 
 def search_spotify(sp, query):
-    """Funzione per cercare brani, album o artisti su Spotify."""
-    result = sp.search(q=query, type='track', limit=10)
-    return result['tracks']['items']
+    result = sp.search(q=query, type='playlist', limit=20)
+    playlists = result['playlists']['items']
+    
+    # Aggiungi un controllo per evitare playlist con attributi non validi
+    for playlist in playlists:
+        if 'tracks' not in playlist:
+            playlist['tracks'] = {'total': 0}  # Imposta un valore di default per il numero di tracce
+    
+    return playlists
+

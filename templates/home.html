@@ -14,24 +14,32 @@
     {% endif %}
     <br><br>
 
-    <!-- Barra di ricerca -->
+    <!-- Barra di ricerca per le playlist -->
     <form method="POST" action="{{ url_for('home.homepage') }}">
-        <input type="text" name="search_query" placeholder="Cerca tracce..." />
+        <input type="text" name="search_query" placeholder="Cerca una playlist" />
         <button type="submit">Cerca</button>
     </form>
 
     <!-- Risultati della ricerca -->
     {% if search_results %}
-        <h2>Risultati della ricerca</h2>
-        <ul>
-            {% for track in search_results %}
-                <li>
-                    <strong>{{ track.name }}</strong> - {{ track.artists[0].name }}<br>
-                    <a href="{{ track.external_urls.spotify }}" target="_blank">Ascolta su Spotify</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+    <h2>Risultati della ricerca - Playlist</h2>
+    <ul>
+        {% for playlist in search_results %}
+            <li>
+                <strong>{{ playlist['name'] }}</strong><br>
+                <p>{{ playlist['description'] or 'Nessuna descrizione disponibile' }}</p>
+                <p>Numero di brani: {{ playlist['tracks']['total'] }}</p>
+                {% if playlist['images'] %}
+                    <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
+                {% else %}
+                    Nessuna immagine disponibile
+                {% endif %}
+                <br>
+                <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza brani</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
 
     <h2>Le tue Playlist:</h2>
     {% if playlists %}
