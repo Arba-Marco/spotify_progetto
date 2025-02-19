@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilo Utente</title>
+</head>
+<body>
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+    <h1>Benvenuto, {{ user_info['display_name'] }}!</h1>
+    
+    {% if user_info['images'] %}
+        <img src="{{ user_info['images'][0]['url'] }}" width="200" alt="Immagine profilo">
+    {% endif %}
+    <br><br>
+
+    <!-- Barra di ricerca -->
+    <form method="POST" action="{{ url_for('home.homepage') }}">
+        <input type="text" name="search_query" placeholder="Cerca tracce..." />
+        <button type="submit">Cerca</button>
+    </form>
+
+    <!-- Risultati della ricerca -->
+    {% if search_results %}
+        <h2>Risultati della ricerca</h2>
+        <ul>
+            {% for track in search_results %}
+                <li>
+                    <strong>{{ track.name }}</strong> - {{ track.artists[0].name }}<br>
+                    <a href="{{ track.external_urls.spotify }}" target="_blank">Ascolta su Spotify</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h2>Le tue Playlist:</h2>
+    {% if playlists %}
+    <table>
+        <thead>
+            <tr>
+            <th>|Nome Playlist|</th>
+            <th>|Numero di Brani|</th>
+            <th>|Copertina|</th>
+            <th>|Azioni|</th>  
+            </tr>
+        </thead>
+        <tbody>
+            {% for playlist in playlists %}
+                <tr>
+                <td>{{ playlist['name'] }}</td>
+                <td>{{ playlist['tracks']['total'] }}</td>
+                <td>
+                {% if playlist['images'] %}
+                    <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
+                {% else %}
+                    Nessuna immagine
+                {% endif %}
+                </td>
+                <td><a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza brani</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Non hai playlist disponibili.</p>
+    {% endif %}
+</body>
+</html>
