@@ -6,5 +6,6 @@
 
 tasks:
   - command: python app.py
-
+  - command: pip install flask
+  - command: pip install spotipy
 
