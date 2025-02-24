@@ -1,58 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brani della Playlist</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #007bff;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        .btn {
-            display: inline-block;
-            padding: 10px 15px;
-            margin-top: 15px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <!-- Collegamento al file CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
@@ -60,6 +13,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>Copertina</th>
                     <th>Nome Brano</th>
                     <th>Artista</th>
                     <th>Album</th>
@@ -69,10 +23,22 @@
             <tbody>
                 {% for track in tracks %}
                 <tr>
+                    <td>
+                        {% if track['track']['album']['images'] %}
+                            <img src="{{ track['track']['album']['images'][0]['url'] }}" class="cover" alt="Copertina Album">
+                        {% else %}
+                            N/D
+                        {% endif %}
+                    </td>
                     <td>{{ track['track']['name'] }}</td>
                     <td>{{ track['track']['artists'][0]['name'] }}</td>
                     <td>{{ track['track']['album']['name'] }}</td>
-                    <td>{{ track['track']['duration_ms'] // 1000 }} sec</td>
+                    <td>
+                        {% set duration = track['track']['duration_ms'] // 1000 %}
+                        {% set minutes = duration // 60 %}
+                        {% set seconds = duration % 60 %}
+                        {{ minutes }}:{{ '%02d' % seconds }}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
