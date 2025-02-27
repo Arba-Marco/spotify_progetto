@@ -1,18 +1,19 @@
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
-from flask import session
+import spotipy  # Importa la libreria Spotipy per interagire con l'API di Spotify
+from spotipy.oauth2 import SpotifyOAuth  # Importa la classe per l'autenticazione OAuth di Spotify
+from flask import session  # Importa la sessione di Flask per memorizzare i token dell'utente
 
 class SpotifyAuthService:
     def __init__(self, client_id, client_secret, redirect_uri):
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
+        # Configura il flusso OAuth per ottenere l'autenticazione dell'utente
         self.sp_oauth = SpotifyOAuth(
             client_id=self.client_id,
             client_secret=self.client_secret,
             redirect_uri=self.redirect_uri,
-            scope="user-read-private",
-            show_dialog=True
+            scope="user-read-private", # Definisce il livello di accesso richiesto
+            show_dialog=True  # Mostra sempre la finestra di dialogo di autenticazione
         )
 
     def get_authorize_url(self):

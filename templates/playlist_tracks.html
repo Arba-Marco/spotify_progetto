@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brani della Playlist</title>
-    <!-- Collegamento al file CSS -->
+    <!-- Collegamento al file CSS per lo stile della pagina -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -13,36 +13,37 @@
         <table>
             <thead>
                 <tr>
-                    <th>Copertina</th>
-                    <th>Nome Brano</th>
-                    <th>Artista</th>
-                    <th>Album</th>
-                    <th>Durata</th>
+                    <th>Copertina</th>  <!-- Colonna per la copertina dell'album -->
+                    <th>Nome Brano</th>  <!-- Colonna per il nome del brano -->
+                    <th>Artista</th>  <!-- Colonna per il nome dell'artista -->
+                    <th>Album</th>  <!-- Colonna per il nome dell'album -->
+                    <th>Durata</th>  <!-- Colonna per la durata del brano -->
                 </tr>
             </thead>
             <tbody>
-                {% for track in tracks %}
+                {% for track in tracks %}  <!-- Itera su tutti i brani nella playlist -->
                 <tr>
                     <td>
-                        {% if track['track']['album']['images'] %}
+                        {% if track['track']['album']['images'] %}  <!-- Controlla se l'album ha un'immagine -->
                             <img src="{{ track['track']['album']['images'][0]['url'] }}" class="cover" alt="Copertina Album">
                         {% else %}
-                            N/D
+                            N/D  <!-- Se non c'è immagine, mostra "N/D" (Non Disponibile) -->
                         {% endif %}
                     </td>
-                    <td>{{ track['track']['name'] }}</td>
-                    <td>{{ track['track']['artists'][0]['name'] }}</td>
-                    <td>{{ track['track']['album']['name'] }}</td>
+                    <td>{{ track['track']['name'] }}</td>  <!-- Mostra il nome del brano -->
+                    <td>{{ track['track']['artists'][0]['name'] }}</td>  <!-- Mostra il primo artista del brano -->
+                    <td>{{ track['track']['album']['name'] }}</td>  <!-- Mostra il nome dell'album -->
                     <td>
-                        {% set duration = track['track']['duration_ms'] // 1000 %}
-                        {% set minutes = duration // 60 %}
-                        {% set seconds = duration % 60 %}
-                        {{ minutes }}:{{ '%02d' % seconds }}
+                        {% set duration = track['track']['duration_ms'] // 1000 %}  <!-- Converte la durata da millisecondi a secondi -->
+                        {% set minutes = duration // 60 %}  <!-- Calcola i minuti -->
+                        {% set seconds = duration % 60 %}  <!-- Calcola i secondi rimanenti -->
+                        {{ minutes }}:{{ '%02d' % seconds }}  <!-- Mostra la durata in formato MM:SS -->
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        <!-- Pulsante per tornare alla home -->
         <p><a href="{{ url_for('home.homepage') }}" class="btn">Torna alla Home</a></p>
     </div>
 </body>

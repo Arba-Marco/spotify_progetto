@@ -6,21 +6,25 @@
     <title>Profilo Utente</title>
 </head>
 <body>
+    <!-- Link per eseguire il logout -->
     <a href="{{ url_for('auth.logout') }}">Logout</a>
+    
+    <!-- Messaggio di benvenuto con il nome dell'utente -->
     <h1>Benvenuto, {{ user_info['display_name'] }}!</h1>
     
+    <!-- Mostra l'immagine del profilo se disponibile -->
     {% if user_info['images'] %}
         <img src="{{ user_info['images'][0]['url'] }}" width="200" alt="Immagine profilo">
     {% endif %}
     <br><br>
 
-    <!-- Barra di ricerca per le playlist -->
+    <!-- Barra di ricerca per trovare playlist -->
     <form method="POST" action="{{ url_for('home.homepage') }}">
         <input type="text" name="search_query" placeholder="Cerca una playlist" />
         <button type="submit">Cerca</button>
     </form>
 
-    <!-- Risultati della ricerca -->
+    <!-- Se sono disponibili risultati di ricerca, li mostra -->
     {% if search_results %}
     <h2>Risultati della ricerca - Playlist</h2>
     <ul>
@@ -29,47 +33,54 @@
                 <strong>{{ playlist['name'] }}</strong><br>
                 <p>{{ playlist['description'] or 'Nessuna descrizione disponibile' }}</p>
                 <p>Numero di brani: {{ playlist['tracks']['total'] }}</p>
+                
+                <!-- Mostra la copertina della playlist se disponibile -->
                 {% if playlist['images'] %}
                     <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
                 {% else %}
                     Nessuna immagine disponibile
                 {% endif %}
                 <br>
+                <!-- Link per visualizzare i brani della playlist -->
                 <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza brani</a>
             </li>
         {% endfor %}
     </ul>
-{% endif %}
+    {% endif %}
 
+    <!-- Sezione che mostra le playlist dell'utente -->
     <h2>Le tue Playlist:</h2>
     {% if playlists %}
     <table>
         <thead>
             <tr>
-            <th>|Nome Playlist|</th>
-            <th>|Numero di Brani|</th>
-            <th>|Copertina|</th>
-            <th>|Azioni|</th>  
+                <th>|Nome Playlist|</th>
+                <th>|Numero di Brani|</th>
+                <th>|Copertina|</th>
+                <th>|Azioni|</th>  
             </tr>
         </thead>
         <tbody>
             {% for playlist in playlists %}
                 <tr>
-                <td>{{ playlist['name'] }}</td>
-                <td>{{ playlist['tracks']['total'] }}</td>
-                <td>
-                {% if playlist['images'] %}
-                    <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
-                {% else %}
-                    Nessuna immagine
-                {% endif %}
-                </td>
-                <td><a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza brani</a></td>
+                    <td>{{ playlist['name'] }}</td>
+                    <td>{{ playlist['tracks']['total'] }}</td>
+                    <td>
+                        <!-- Mostra la copertina della playlist se disponibile -->
+                        {% if playlist['images'] %}
+                            <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
+                        {% else %}
+                            Nessuna immagine
+                        {% endif %}
+                    </td>
+                    <!-- Link per visualizzare i brani della playlist -->
+                    <td><a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza brani</a></td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
+    <!-- Messaggio se l'utente non ha playlist -->
     <p>Non hai playlist disponibili.</p>
     {% endif %}
 </body>
