@@ -12,7 +12,7 @@ class SpotifyAuthService:
             client_id=self.client_id,
             client_secret=self.client_secret,
             redirect_uri=self.redirect_uri,
-            scope="user-read-private", # Definisce il livello di accesso richiesto
+            scope="user-read-private",  # Definisce il livello di accesso richiesto
             show_dialog=True  # Mostra sempre la finestra di dialogo di autenticazione
         )
 
@@ -31,3 +31,7 @@ class SpotifyAuthService:
     def clear_token_from_session(self):
         """Rimuove il token dalla sessione"""
         session.clear()
+
+    def get_public_spotify_client(self):
+        """Restituisce un client pubblico di Spotify senza necessità di login."""
+        return spotipy.Spotify()  # Client senza autenticazione, per fare ricerche pubbliche

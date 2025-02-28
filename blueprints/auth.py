@@ -31,16 +31,16 @@ def login_spotify():
 def callback():
     """Gestisce la risposta di Spotify dopo il login."""
     code = request.args.get('code')
-    error = request.args.get('error')  # Spotify passa 'access_denied' se l'utente annulla
+    error = request.args.get('error')
 
     if error == "access_denied" or not code:
-        # Se l'utente annulla il login, lo reindirizziamo alla homepage senza loggarlo
         return redirect(url_for('home.homepage'))
 
-    # Se il login ha successo, otteniamo il token e salviamo la sessione
     token_info = sp_oauth.get_access_token(code)
-    session['token_info'] = token_info
+    session['token_info'] = token_info  
+    session['user_info'] = spotipy.Spotify(auth=token_info['access_token']).current_user()
     return redirect(url_for('home.homepage'))
+
 
 @auth_bp.route('/logout')
 def logout():

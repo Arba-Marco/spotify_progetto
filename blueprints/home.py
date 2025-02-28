@@ -1,7 +1,6 @@
-from flask import Blueprint, render_template, session, redirect, url_for, request
+from flask import Blueprint, render_template, request, session
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-
 home_bp = Blueprint('home', __name__)
 
 # Configurazione dell'autenticazione Spotify
@@ -16,9 +15,7 @@ def get_spotify_client():
     token_info = session.get('token_info')
     if token_info:
         return spotipy.Spotify(auth=token_info['access_token'])
-    else:
-        # Se non sei loggato, ritorna un client pubblico (senza token)
-        return spotipy.Spotify()
+    return spotipy.Spotify()  # Client pubblico se non autenticato
 
 @home_bp.route('/home', methods=['GET', 'POST'])
 def homepage():
@@ -49,19 +46,22 @@ def homepage():
 @home_bp.route('/search_playlist', methods=['POST', 'GET'])
 def search_playlist():
     """Effettua la ricerca di playlist su Spotify, sia per utenti loggati che non loggati."""
-    sp = get_spotify_client()
+    token_info = session.get('token_info')
+    sp = spotipy.Spotify(auth=token_info['access_token']) if token_info else spotipy.Spotify()  
     search_results = []
 
     if request.method == 'POST':
-        query = request.form['search_query']
-        if sp:  # Se l'utente è loggato, effettuare la ricerca usando il client autenticato
-            search_results = sp.search(q=query, type='playlist', limit=20)['playlists']['items']
-        else:
-            # Se l'utente non è loggato, possiamo fare una ricerca pubblica senza bisogno di un token
-            sp_public = spotipy.Spotify()  # Client pubblico senza autenticazione
-            search_results = sp_public.search(q=query, type='playlist', limit=20)['playlists']['items']
+        query = request.form.get('search_query')
+        if query:
+            try:
+                print(f"Eseguendo la ricerca per: {query}")
+                search_results = sp.search(q=query, type='playlist', limit=20)['playlists']['items']
+                print("Risultati della ricerca:", search_results)
+
+            except Exception as e:
+                print("Errore nella ricerca delle playlist:", e)
     
-    return render_template('home.html', search_results=search_results)
+    return render_template('home.html', search_results=search_results, user_info=session.get('user_info'), playlists=session.get('playlists', []))
 
 @home_bp.route('/playlist_tracks/<playlist_id>')
 def playlist_tracks(playlist_id):
@@ -76,14 +76,3 @@ def playlist_tracks(playlist_id):
             print("Errore nel recupero delle tracce:", e)
 
     return render_template('playlist_tracks.html', tracks=tracks)
-
-def search_playlist():
-    """Effettua la ricerca di playlist su Spotify, sia per utenti loggati che non loggati."""
-    sp = get_spotify_client()
-    search_results = []
-
-    if request.method == 'POST':
-        query = request.form['search_query']
-        search_results = sp.search(q=query, type='playlist', limit=20)['playlists']['items']
-    
-    return render_template('home.html', search_results=search_results)
