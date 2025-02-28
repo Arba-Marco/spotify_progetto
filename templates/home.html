@@ -36,27 +36,29 @@
             {% endif %}
         </div>
 
-        <form method="POST" action="{{ url_for('home.search_playlist') }}" class="search-form">
+        <form method="POST" action="/search_playlist" class="search-form">
             <input type="text" name="search_query" placeholder="Cerca playlist" required />
             <button type="submit">Cerca</button>
         </form>
 
         {% if search_results %}
-            <h2>Risultati della ricerca - Playlist</h2>
-            <ul>
-                {% for playlist in search_results %}
-                    <li>
-                        <strong>{{ playlist['name'] }}</strong> 
-                        {% if playlist['tracks'] %}
-                            ({{ playlist['tracks']['total'] }} brani)
-                        {% else %}
-                            (0 brani)
-                        {% endif %}
-                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <h2>Risultati della ricerca - Playlist</h2>
+        <ul>
+            {% for playlist in search_results %}
+                <li>
+                    <strong>{{ playlist['name'] }}</strong> 
+                    {% if playlist['tracks'] %}
+                        ({{ playlist['tracks']['total'] }} brani)
+                    {% else %}
+                        (0 brani)
+                    {% endif %}
+                    <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza</a>
+                    <a href="{{ url_for('home.save_playlist', playlist_id=playlist['id']) }}" class="btn btn-primary">Salva Playlist</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-secondary">Playlist Salvate</a>
 
         {% if user_info and playlists %}
             <h2>Le tue Playlist:</h2>

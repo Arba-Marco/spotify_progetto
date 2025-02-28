@@ -1,0 +1,14 @@
+<h2>Playlist Preferite</h2>
+
+{% if favorite_playlists %}
+    {% for playlist in favorite_playlists %}
+        <div class="playlist">
+            <h3>{{ playlist['name'] }}</h3>
+            <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Vedi brani</a>
+            <br>
+            <a href="{{ url_for('home.remove_from_favorites', playlist_id=playlist['id']) }}"> Rimuovi dai preferiti</a>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Non hai ancora salvato nessuna playlist.</p>
+{% endif %}

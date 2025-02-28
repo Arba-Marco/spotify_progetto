@@ -12,7 +12,9 @@ auth_bp = Blueprint('auth', __name__)
 sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
                          client_secret=SPOTIFY_CLIENT_SECRET,
                          redirect_uri=SPOTIFY_REDIRECT_URI,
-                         scope='user-library-read')
+                         scope='playlist-modify-public playlist-modify-private user-library-read',
+                         
+                         )
 
 @auth_bp.route('/')
 def login():

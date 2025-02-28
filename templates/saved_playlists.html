@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Salvate</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Le tue Playlist Salvate</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if playlists %}
+            <ul class="list-group">
+                {% for playlist in playlists %}
+                    <li class="list-group-item">
+                        <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
+                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nessuna playlist salvata.</p>
+        {% endif %}
+
+        <br>
+        <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
+    </div>
+</body>
+</html>

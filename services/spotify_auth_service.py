@@ -13,7 +13,8 @@ class SpotifyAuthService:
             client_secret=self.client_secret,
             redirect_uri=self.redirect_uri,
             scope="user-read-private",  # Definisce il livello di accesso richiesto
-            show_dialog=True  # Mostra sempre la finestra di dialogo di autenticazione
+            show_dialog=True , # Mostra sempre la finestra di dialogo di autenticazione,
+            
         )
 
     def get_authorize_url(self):
