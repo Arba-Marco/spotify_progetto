@@ -14,6 +14,7 @@
             {% if messages %}
                 <div class="alert-container">
                     {% for category, message in messages %}
+                        <!-- Mostra i messaggi di feedback (successo, errore, ecc.) -->
                         <div class="alert alert-{{ category }}">{{ message }}</div>
                     {% endfor %}
                 </div>
@@ -21,19 +22,23 @@
         {% endwith %}
 
         {% if playlists %}
+            <!-- Lista delle playlist salvate -->
             <ul class="list-group">
                 {% for playlist in playlists %}
                     <li class="list-group-item">
                         <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
+                        <!-- Link per visualizzare i brani di una playlist salvata -->
                         <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
                     </li>
                 {% endfor %}
             </ul>
         {% else %}
+            <!-- Messaggio quando non ci sono playlist salvate -->
             <p>Nessuna playlist salvata.</p>
         {% endif %}
 
         <br>
+        <!-- Link per tornare alla home page -->
         <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
     </div>
 </body>

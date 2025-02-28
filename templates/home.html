@@ -26,16 +26,20 @@
             {% if user_info %}
                 <h2>Benvenuto, {{ user_info['display_name'] }}!</h2>
                 {% if user_info['images'] %}
+                    <!-- Visualizza immagine del profilo se disponibile -->
                     <img src="{{ user_info['images'][0]['url'] }}" width="200" alt="Immagine profilo">
                 {% endif %}
                 <br><br>
+                <!-- Link per il logout -->
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Logout</a>
             {% else %}
                 <h2>Effettua il login con Spotify</h2>
+                <!-- Link per effettuare il login con Spotify -->
                 <a href="{{ url_for('auth.login_spotify') }}" class="btn btn-success">Login con Spotify</a>
             {% endif %}
         </div>
 
+        <!-- Form di ricerca per le playlist -->
         <form method="POST" action="/search_playlist" class="search-form">
             <input type="text" name="search_query" placeholder="Cerca playlist" required />
             <button type="submit">Cerca</button>
@@ -47,17 +51,21 @@
             {% for playlist in search_results %}
                 <li>
                     <strong>{{ playlist['name'] }}</strong> 
+                    <!-- Mostra il numero di brani presenti nella playlist -->
                     {% if playlist['tracks'] %}
                         ({{ playlist['tracks']['total'] }} brani)
                     {% else %}
                         (0 brani)
                     {% endif %}
+                    <!-- Link per visualizzare i brani di una playlist -->
                     <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza</a>
+                    <!-- Link per salvare la playlist -->
                     <a href="{{ url_for('home.save_playlist', playlist_id=playlist['id']) }}" class="btn btn-primary">Salva Playlist</a>
                 </li>
             {% endfor %}
         </ul>
     {% endif %}
+    <!-- Link per visualizzare le playlist salvate -->
     <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-secondary">Playlist Salvate</a>
 
         {% if user_info and playlists %}
@@ -66,11 +74,13 @@
                 {% for playlist in playlists %}
                     <li>
                         <strong>{{ playlist['name'] }}</strong> 
+                        <!-- Mostra il numero di brani nelle playlist dell'utente -->
                         {% if playlist['tracks'] %}
                             ({{ playlist['tracks']['total'] }} brani)
                         {% else %}
                             (0 brani)
                         {% endif %}
+                        <!-- Link per visualizzare i brani della playlist -->
                         <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza</a>
                     </li>
                 {% endfor %}

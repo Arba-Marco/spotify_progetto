@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session,flash,redirect, url_for
+from flask import Blueprint, render_template, request, session, flash, redirect, url_for
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 
@@ -141,14 +141,11 @@ def view_saved_playlists():
 
     return render_template('saved_playlists.html', playlists=playlists)
 
-
-
 @home_bp.route('/favorites')
 def view_favorites():
     """Mostra le playlist preferite salvate nella sessione."""
     favorite_playlists = session.get('favorite_playlists', [])
     return render_template('favorites.html', favorite_playlists=favorite_playlists)
-
 
 @home_bp.route('/remove_from_favorites/<playlist_id>')
 def remove_from_favorites(playlist_id):
