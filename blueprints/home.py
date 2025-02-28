@@ -9,6 +9,10 @@ sp_oauth = SpotifyOAuth(client_id='d3c1badbe879439c85f4ee31bf30a33a',
                          redirect_uri='https://5000-arbamarco-spotifyproget-zoymqvnn7wp.ws-eu118.gitpod.io/callback',
                          scope='user-library-read',
                          show_dialog=True)
+SPOTIFY_CLIENT_ID = 'd3c1badbe879439c85f4ee31bf30a33a'
+SPOTIFY_CLIENT_SECRET = '12ccffe121454ab892ccd7890c4a8db1'
+SPOTIFY_REDIRECT_URI = 'https://5000-arbamarco-spotifyproget-zoymqvnn7wp.ws-eu118.gitpod.io/callback'
+
 
 def get_spotify_client():
     """Restituisce un client Spotify autenticato oppure un client pubblico se l'utente non è loggato."""
@@ -47,7 +51,10 @@ def homepage():
 def search_playlist():
     """Effettua la ricerca di playlist su Spotify, sia per utenti loggati che non loggati."""
     token_info = session.get('token_info')
-    sp = spotipy.Spotify(auth=token_info['access_token']) if token_info else spotipy.Spotify()  
+    
+    # Usa client autenticato se loggato, altrimenti client pubblico
+    sp = spotipy.Spotify(auth=token_info['access_token']) if token_info else spotipy.Spotify(client_credentials_manager=SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET, redirect_uri=SPOTIFY_REDIRECT_URI))
+
     search_results = []
 
     if request.method == 'POST':
@@ -56,12 +63,11 @@ def search_playlist():
             try:
                 print(f"Eseguendo la ricerca per: {query}")
                 search_results = sp.search(q=query, type='playlist', limit=20)['playlists']['items']
-                print("Risultati della ricerca:", search_results)
-
             except Exception as e:
                 print("Errore nella ricerca delle playlist:", e)
     
     return render_template('home.html', search_results=search_results, user_info=session.get('user_info'), playlists=session.get('playlists', []))
+
 
 @home_bp.route('/playlist_tracks/<playlist_id>')
 def playlist_tracks(playlist_id):
