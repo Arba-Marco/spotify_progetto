@@ -4,84 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profilo Utente</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f2f2f2; }
+        .container { max-width: 800px; margin: 40px auto; padding: 20px; background-color: #fff; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .header { background-color: #333; color: #fff; padding: 10px; text-align: center; }
+        .header h1 { margin: 0; }
+        .btn-container { text-align: center; margin-top: 20px; }
+        .search-form { margin-top: 20px; }
+        .search-form input[type="text"] { width: 70%; height: 40px; padding: 10px; font-size: 18px; border: 1px solid #ccc; }
+        .search-form button[type="submit"] { width: 20%; height: 40px; padding: 10px; font-size: 18px; background-color: #333; color: #fff; border: none; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <!-- Link per eseguire il logout -->
-    <a href="{{ url_for('auth.logout') }}">Logout</a>
-    
-    <!-- Messaggio di benvenuto con il nome dell'utente -->
-    <h1>Benvenuto, {{ user_info['display_name'] }}!</h1>
-    
-    <!-- Mostra l'immagine del profilo se disponibile -->
-    {% if user_info['images'] %}
-        <img src="{{ user_info['images'][0]['url'] }}" width="200" alt="Immagine profilo">
-    {% endif %}
-    <br><br>
-
-    <!-- Barra di ricerca per trovare playlist -->
-    <form method="POST" action="{{ url_for('home.homepage') }}">
-        <input type="text" name="search_query" placeholder="Cerca una playlist" />
-        <button type="submit">Cerca</button>
-    </form>
-
-    <!-- Se sono disponibili risultati di ricerca, li mostra -->
-    {% if search_results %}
-    <h2>Risultati della ricerca - Playlist</h2>
-    <ul>
-        {% for playlist in search_results %}
-            <li>
-                <strong>{{ playlist['name'] }}</strong><br>
-                <p>{{ playlist['description'] or 'Nessuna descrizione disponibile' }}</p>
-                <p>Numero di brani: {{ playlist['tracks']['total'] }}</p>
-                
-                <!-- Mostra la copertina della playlist se disponibile -->
-                {% if playlist['images'] %}
-                    <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
-                {% else %}
-                    Nessuna immagine disponibile
+    <div class="container">
+        <div class="header">
+            <h1>Profilo Utente</h1>
+        </div>
+        
+        <div class="btn-container">
+            {% if user_info %}
+                <h2>Benvenuto, {{ user_info['display_name'] }}!</h2>
+                {% if user_info['images'] %}
+                    <img src="{{ user_info['images'][0]['url'] }}" width="200" alt="Immagine profilo">
                 {% endif %}
-                <br>
-                <!-- Link per visualizzare i brani della playlist -->
-                <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza brani</a>
-            </li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+                <br><br>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Logout</a>
+            {% else %}
+                <h2>Effettua il login con Spotify</h2>
+                <a href="{{ url_for('auth.login_spotify') }}" class="btn btn-success">Login con Spotify</a>
+            {% endif %}
+        </div>
 
-    <!-- Sezione che mostra le playlist dell'utente -->
-    <h2>Le tue Playlist:</h2>
-    {% if playlists %}
-    <table>
-        <thead>
-            <tr>
-                <th>|Nome Playlist|</th>
-                <th>|Numero di Brani|</th>
-                <th>|Copertina|</th>
-                <th>|Azioni|</th>  
-            </tr>
-        </thead>
-        <tbody>
-            {% for playlist in playlists %}
-                <tr>
-                    <td>{{ playlist['name'] }}</td>
-                    <td>{{ playlist['tracks']['total'] }}</td>
-                    <td>
-                        <!-- Mostra la copertina della playlist se disponibile -->
-                        {% if playlist['images'] %}
-                            <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
+        <form method="POST" action="{{ url_for('home.search_playlist') }}" class="search-form">
+            <input type="text" name="search_query" placeholder="Cerca playlist" required />
+            <button type="submit">Cerca</button>
+        </form>
+
+        {% if search_results %}
+            <h2>Risultati della ricerca - Playlist</h2>
+            <ul>
+                {% for playlist in search_results %}
+                    <li>
+                        <strong>{{ playlist['name'] }}</strong> 
+                        {% if playlist['tracks'] %}
+                            ({{ playlist['tracks']['total'] }} brani)
                         {% else %}
-                            Nessuna immagine
+                            (0 brani)
                         {% endif %}
-                    </td>
-                    <!-- Link per visualizzare i brani della playlist -->
-                    <td><a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza brani</a></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <!-- Messaggio se l'utente non ha playlist -->
-    <p>Non hai playlist disponibili.</p>
-    {% endif %}
+                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if user_info and playlists %}
+            <h2>Le tue Playlist:</h2>
+            <ul>
+                {% for playlist in playlists %}
+                    <li>
+                        <strong>{{ playlist['name'] }}</strong> 
+                        {% if playlist['tracks'] %}
+                            ({{ playlist['tracks']['total'] }} brani)
+                        {% else %}
+                            (0 brani)
+                        {% endif %}
+                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
 </body>
 </html>

@@ -1,32 +1,52 @@
-from flask import Blueprint, redirect, request, url_for, session  # Importa le funzioni necessarie da Flask
-import spotipy  # Libreria per interagire con l'API di Spotify
-from spotipy.oauth2 import SpotifyOAuth  # Classe per la gestione dell'autenticazione con Spotify
-from services.spotify_auth_service import SpotifyAuthService  # Importa il servizio di autenticazione personalizzato
+from flask import Blueprint, redirect, request, url_for, session, render_template
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+import requests
 
-# Credenziali dell'applicazione Spotify
 SPOTIFY_CLIENT_ID = "d3c1badbe879439c85f4ee31bf30a33a"
 SPOTIFY_CLIENT_SECRET = "12ccffe121454ab892ccd7890c4a8db1"
 SPOTIFY_REDIRECT_URI = "https://5000-arbamarco-spotifyproget-zoymqvnn7wp.ws-eu118.gitpod.io/callback"
+
 auth_bp = Blueprint('auth', __name__)
 
-spotify_auth_service = SpotifyAuthService(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI)
-# Crea un Blueprint per la gestione delle autenticazioni
-
+sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
+                         client_secret=SPOTIFY_CLIENT_SECRET,
+                         redirect_uri=SPOTIFY_REDIRECT_URI,
+                         scope='user-library-read')
 
 @auth_bp.route('/')
 def login():
-    auth_url = spotify_auth_service.get_authorize_url()  
-    return redirect(auth_url)
+    """Mostra la homepage senza alcun utente loggato."""
+    session.clear()  # Cancella ogni sessione attiva all'avvio
+    return render_template('home.html', user_info=None, playlists=[])
 
-@auth_bp.route('/logout')
-def logout():
-    session.clear()  # Cancella l'access token salvato in sessione
-    return redirect(url_for('auth.login'))
+
+@auth_bp.route('/login_spotify')
+def login_spotify():
+    """Reindirizza alla pagina di login di Spotify forzando sempre il login."""
+    auth_url = sp_oauth.get_authorize_url()
+    auth_url += "&show_dialog=true"  # <-- Aggiunge il parametro manualmente
+    return redirect(auth_url)
 
 
 @auth_bp.route('/callback')
 def callback():
-    code = request.args.get('code')  # Ottiene il codice di autorizzazione dalla richiesta
-    token_info = spotify_auth_service.get_access_token(code)  # Scambia il codice per un token di accesso
-    session['token_info'] = token_info  # Salva il token nella sessione
-    return redirect(url_for('home.homepage'))  # Reindirizza alla homepage dell'applicazione
+    """Gestisce la risposta di Spotify dopo il login."""
+    code = request.args.get('code')
+    error = request.args.get('error')  # Spotify passa 'access_denied' se l'utente annulla
+
+    if error == "access_denied" or not code:
+        # Se l'utente annulla il login, lo reindirizziamo alla homepage senza loggarlo
+        return redirect(url_for('home.homepage'))
+
+    # Se il login ha successo, otteniamo il token e salviamo la sessione
+    token_info = sp_oauth.get_access_token(code)
+    session['token_info'] = token_info
+    return redirect(url_for('home.homepage'))
+
+
+@auth_bp.route('/logout')
+def logout():
+    """Elimina la sessione e ricarica la homepage senza alcun utente loggato."""
+    session.clear()
+    return redirect(url_for('auth.login'))  # Torna alla homepage con utente disconnesso
