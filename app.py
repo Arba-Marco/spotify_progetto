@@ -2,6 +2,7 @@ from flask import Flask  # Importa Flask per creare l'applicazione web
 from flask_login import LoginManager
 from blueprints.auth import auth_bp  # Importa il Blueprint per la gestione dell'autenticazione
 from blueprints.home import home_bp  # Importa il Blueprint per la gestione della homepage
+
 from blueprints.login import login_bp  # Importa il Blueprint per il login
 from services.db import get_db
 from models.user import User
