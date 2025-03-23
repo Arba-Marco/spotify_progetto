@@ -5,10 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .close {
+            font-size: 1.5rem;
+            color: #ff0000;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #333;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Login</h2>
+        <!-- Modale Login -->
+        <div class="modal-header">
+            <h2>Login</h2>
+            <!-- Pulsante di chiusura (X) -->
+            <span class="close" onclick="closeModal()">×</span>
+        </div>
         <form method="POST">
             <div class="form-group">
                 <label for="username">Username</label>
@@ -24,5 +44,11 @@
             Non hai un account? <a href="{{ url_for('login_bp.register') }}">Registrati</a>
         </p>
     </div>
+
+    <script>
+        function closeModal() {
+            window.location.href = "{{ url_for('home.homepage') }}";  // Reindirizza alla homepage
+        }
+    </script>
 </body>
 </html>

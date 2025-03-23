@@ -4,10 +4,30 @@
     <meta charset="UTF-8">
     <title>Registrazione</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .close {
+            font-size: 1.5rem;
+            color: #ff0000;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #333;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Registrazione</h2>
+        <!-- Modale Registrazione -->
+        <div class="modal-header">
+            <h2>Registrazione</h2>
+            <!-- Pulsante di chiusura (X) -->
+            <span class="close" onclick="closeModal()">×</span>
+        </div>
         <form method="POST">
             <div class="form-group">
                 <label>Username:</label>
@@ -27,5 +47,12 @@
             Hai già un account? <a href="{{ url_for('login_bp.login') }}">Accedi</a>
         </p>
     </div>
+
+    <script>
+        // Funzione per chiudere la modale e reindirizzare alla homepage
+        function closeModal() {
+            window.location.href = "{{ url_for('home.homepage') }}";  // Reindirizza alla homepage
+        }
+    </script>
 </body>
 </html>
