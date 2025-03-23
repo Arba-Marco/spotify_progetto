@@ -22,13 +22,15 @@
             <h1>Profilo Utente</h1>
         </div>
         
-        {% if not current_user.is_authenticated %}
-        <a href="{{ url_for('login_bp.login') }}" class="btn btn-primary">Login</a>
-    {% else %}
-        <h3>Benvenuto, {{ current_user.username }}!</h3>
-        <a href="{{ url_for('login_bp.logout') }}" class="btn btn-danger">Logout</a>
-    {% endif %}
-
+        <div class="btn-container">
+            {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('login_bp.login') }}" class="btn btn-primary">Login</a>
+                <a href="{{ url_for('login_bp.register') }}" class="btn btn-secondary">Registrati</a>
+            {% else %}
+                <h3>Benvenuto, {{ current_user.username }}!</h3>
+                <a href="{{ url_for('login_bp.logout') }}" class="btn btn-danger">Logout</a>
+            {% endif %}
+        </div>
         <div class="btn-container">
             {% if user_info %}
                 <h2>Benvenuto, {{ user_info['display_name'] }}!</h2>
