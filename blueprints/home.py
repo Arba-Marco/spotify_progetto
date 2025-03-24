@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, session, flash, redirect, url_for
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
+from flask_login import current_user
+from services.db import get_db
 
 home_bp = Blueprint('home', __name__)
 
@@ -69,6 +71,9 @@ def search_playlist():
     
     return render_template('home.html', search_results=search_results, user_info=session.get('user_info'), playlists=session.get('playlists', []))
 
+
+
+
 @home_bp.route('/playlist_tracks/<playlist_id>')
 def playlist_tracks(playlist_id):
     """Mostra i brani di una playlist specifica anche se l'utente non è loggato."""
@@ -102,42 +107,60 @@ def add_to_favorites():
 
 @home_bp.route('/save_playlist/<playlist_id>')
 def save_playlist(playlist_id):
-    """Salva una playlist per un utente, anche se non è loggato."""
-    
-    user_info = session.get('user_info')
+    """Salva una playlist nel database per utenti loggati, o nella sessione per ospiti."""
+    playlist_name = request.args.get('playlist_name', '')  # Passa il nome della playlist come parametro opzionale
 
-    if user_info:
-        sp = get_spotify_client()
+    if current_user.is_authenticated:
         try:
-            sp.current_user_follow_playlist(playlist_id)
-            flash("Playlist salvata con successo!", "success")
+            conn = get_db()
+            with conn.cursor() as cursor:
+                cursor.execute('''
+                    INSERT INTO saved_playlists (user_id, playlist_id, playlist_name)
+                    VALUES (%s, %s, %s)
+                    ON DUPLICATE KEY UPDATE playlist_name = VALUES(playlist_name)
+                ''', (current_user.id, playlist_id, playlist_name))
+                conn.commit()
+            conn.close()
+            flash("Playlist salvata nel tuo profilo!", "success")
         except Exception as e:
             flash(f"Errore nel salvataggio: {e}", "danger")
     else:
         if 'saved_playlists' not in session:
             session['saved_playlists'] = []
-
         if playlist_id not in session['saved_playlists']:
             session['saved_playlists'].append(playlist_id)
             session.modified = True
             flash("Playlist salvata temporaneamente. Effettua il login per salvarla permanentemente.", "info")
 
     return redirect(url_for('home.view_saved_playlists'))
-    return render_template('home.html', message=message)
+
 
 @home_bp.route('/saved_playlists')
 def view_saved_playlists():
-    """Mostra le playlist salvate (anche per utenti non loggati)."""
-    
-    saved_playlists = session.get('saved_playlists', [])
+    """Mostra le playlist salvate (dal database per utenti loggati o dalla sessione per ospiti)."""
     sp = get_spotify_client()
-    
     playlists = []
-    for playlist_id in saved_playlists:
+
+    if current_user.is_authenticated:
         try:
-            playlists.append(sp.playlist(playlist_id))
+            conn = get_db()
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT playlist_id FROM saved_playlists WHERE user_id = %s', (current_user.id,))
+                rows = cursor.fetchall()
+            conn.close()
+            playlist_ids = [row['playlist_id'] for row in rows]
         except Exception as e:
-            print("Errore nel recupero della playlist salvata:", e)
+            flash(f"Errore nel recupero delle playlist salvate: {e}", "danger")
+            playlist_ids = []
+    else:
+        playlist_ids = session.get('saved_playlists', [])
+
+    # Recupera dettagli playlist da Spotify
+    for pid in playlist_ids:
+        try:
+            playlists.append(sp.playlist(pid))
+        except Exception as e:
+            print(f"Errore nel recupero della playlist {pid}: {e}")
 
     return render_template('saved_playlists.html', playlists=playlists)
 

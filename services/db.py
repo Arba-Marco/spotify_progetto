@@ -33,13 +33,25 @@ class DatabaseWrapper:
         return result
 
     def create_tables(self):
-        # Creazione della tabella users
+        # Tabella utenti
         self.execute_query('''
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(100) UNIQUE NOT NULL,
                 email VARCHAR(100) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL
+            )
+        ''')
+
+        # Tabella playlist salvate
+        self.execute_query('''
+            CREATE TABLE IF NOT EXISTS saved_playlists (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                playlist_id VARCHAR(100) NOT NULL,
+                playlist_name VARCHAR(255),
+                UNIQUE(user_id, playlist_id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         ''')
 
@@ -61,4 +73,4 @@ if __name__ == "__main__":
         password=os.environ.get("MYSQL_PASSWORD", "password"),
         database=os.environ.get("MYSQL_DATABASE", "spotify")
     )
-    print("Tabella 'users' creata (se non esistente).")
+    print("Tabelle 'users' e 'saved_playlists' create (se non esistenti).")
