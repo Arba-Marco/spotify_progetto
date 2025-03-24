@@ -9,7 +9,7 @@ home_bp = Blueprint('home', __name__)
 # Configurazione dell'autenticazione Spotify
 SPOTIFY_CLIENT_ID = 'd3c1badbe879439c85f4ee31bf30a33a'
 SPOTIFY_CLIENT_SECRET = '12ccffe121454ab892ccd7890c4a8db1'
-SPOTIFY_REDIRECT_URI = 'https://5000-arbamarco-spotifyproget-edm6x806cyt.ws-eu118.gitpod.io/callback'
+SPOTIFY_REDIRECT_URI = 'https://5000-arbamarco-spotifyproget-y4u9mja6sej.ws-eu118.gitpod.io/callback'
 
 sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
                          client_secret=SPOTIFY_CLIENT_SECRET,
