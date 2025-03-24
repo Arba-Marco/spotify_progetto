@@ -29,16 +29,20 @@
             <!-- Pulsante di chiusura (X) -->
             <span class="close" onclick="closeModal()">×</span>
         </div>
+
+
         <!-- Messaggi Flash -->
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }} mt-3" role="alert">
-                {{ message }}
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} mt-3 flash-message" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      
+ 
 
         <form method="POST">
             <div class="form-group">

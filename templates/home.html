@@ -23,30 +23,29 @@
         </div>
         
         <div class="btn-container">
-            {% if not current_user.is_authenticated %}
+            {% if current_user.is_authenticated %}
+                <h3>Benvenuto, {{ current_user.username }}!</h3>
+                <a href="{{ url_for('login_bp.logout') }}" class="btn btn-danger">Logout da Flask</a>
+            {% else %}
                 <a href="{{ url_for('login_bp.login') }}" class="btn btn-primary">Login</a>
                 <a href="{{ url_for('login_bp.register') }}" class="btn btn-secondary">Registrati</a>
-            {% else %}
-                <h3>Benvenuto, {{ current_user.username }}!</h3>
-                <a href="{{ url_for('login_bp.logout') }}" class="btn btn-danger">Logout</a>
             {% endif %}
         </div>
+        
         <div class="btn-container">
             {% if user_info %}
-                <h2>Benvenuto, {{ user_info['display_name'] }}!</h2>
+                <h3>Benvenuto, {{ user_info['display_name'] }}!</h3>
                 {% if user_info['images'] %}
-                    <!-- Visualizza immagine del profilo se disponibile -->
                     <img src="{{ user_info['images'][0]['url'] }}" width="200" alt="Immagine profilo">
                 {% endif %}
-                <br><br>
-                <!-- Link per il logout -->
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Logout</a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-warning">Logout da Spotify</a>
             {% else %}
-                <h2>Effettua il login con Spotify</h2>
-                <!-- Link per effettuare il login con Spotify -->
                 <a href="{{ url_for('auth.login_spotify') }}" class="btn btn-success">Collegamento Spotify</a>
             {% endif %}
         </div>
+        
+       
+        
 
         <!-- Form di ricerca per le playlist -->
         <form method="POST" action="/search_playlist" class="search-form">
