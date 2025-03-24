@@ -40,7 +40,7 @@ def login():
 # Rotta per la registrazione dell'utente
 @login_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    # Gestione della sottomissione del modulo
+       # Gestione della sottomissione del modulo
     if request.method == 'POST':
         # Recupero dei dati dal modulo
         username = request.form['username']
@@ -48,24 +48,40 @@ def register():
         password = request.form['password']
         password_hash = generate_password_hash(password)  # Hash della password prima di salvarla nel DB
 
-        # Connessione al database e inserimento dei dati del nuovo utente
+        # Connessione al database e controllo dell'unicità del nome utente e dell'email
         conn = get_db()
         with conn.cursor() as cursor:
             try:
+                # Controlla se esiste già un utente con lo stesso username
+                cursor.execute("SELECT 1 FROM users WHERE username = %s", (username,))
+                if cursor.fetchone():
+                    flash('Username già in uso. Scegli un altro nome utente.', 'danger')
+                    return render_template("registrazione.html")
+
+                # Controlla se esiste già un utente con la stessa email
+                cursor.execute("SELECT 1 FROM users WHERE email = %s", (email,))
+                if cursor.fetchone():
+                    flash('Email già registrata. Usa un\'altra email.', 'danger')
+                    return render_template("registrazione.html")
+
                 # Inserisce i dati del nuovo utente nel database
                 cursor.execute(
                     "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
                     (username, email, password_hash)
                 )
                 conn.commit()  # Commette la transazione per salvare i dati
+
+                flash("Registrazione completata! Ora puoi effettuare il login.", 'success')  # Mostra un messaggio di successo
+                return redirect(url_for("login_bp.login"))  # Redirige alla pagina di login dopo una registrazione riuscita
+
             except Exception as e:
-                conn.close()
-                flash("Errore durante la registrazione: " + str(e), 'danger')  # Mostra un messaggio di errore in caso di problemi
+                conn.rollback()  # Esegui il rollback in caso di errore
+                flash("Errore durante la registrazione: " + str(e), 'danger')  # Mostra un messaggio di errore
                 return render_template("registrazione.html")  # Renderizza di nuovo la pagina di registrazione in caso di errore
+
         conn.close()
 
-        flash("Registrazione completata! Ora puoi effettuare il login.", 'success')  # Mostra un messaggio di successo
-        return redirect(url_for("login_bp.login"))  # Redirige alla pagina di login dopo una registrazione riuscita
+        
 
     # Renderizza il template di registrazione per le richieste GET
     return render_template("registrazione.html")
