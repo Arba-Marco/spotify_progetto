@@ -1,95 +1,87 @@
 # Importazione delle librerie necessarie
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, login_required
 from services.db import get_db  # Funzione per interagire con il database
 from werkzeug.security import check_password_hash, generate_password_hash  # Per l'hashing delle password
-from models.user import User  # Importazione del modello User per creare oggetti utente
+from models.user import User  # Modello User per creare oggetti utente
 
 # Creazione di un Blueprint per le rotte relative al login
 login_bp = Blueprint('login_bp', __name__)
 
+
 # Rotta per il login dell'utente
 @login_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    # Gestione della sottomissione del modulo
     if request.method == 'POST':
-        # Recupero dei dati dal modulo
         username = request.form['username']
         password = request.form['password']
 
-        # Connessione al database e recupero dei dati dell'utente in base al nome utente
         conn = get_db()
         with conn.cursor() as cursor:
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-            user_data = cursor.fetchone()  # Recupera i dati dell'utente dal database
+            user_data = cursor.fetchone()
         conn.close()
 
-        # Verifica della password inserita dall'utente
-        if user_data and check_password_hash(user_data['password_hash'], password):
-            # Se valida, crea un oggetto User e logga l'utente
-            user = User(user_data['id'], user_data['username'], user_data['email'])
-            login_user(user)
-            flash('Login effettuato con successo!', 'success')  # Mostra un messaggio di successo
-            return redirect(url_for('home.homepage'))  # Redirige alla homepage dopo un login riuscito
+        if user_data:
+            if check_password_hash(user_data['password_hash'], password):
+                user = User(user_data['id'], user_data['username'], user_data['email'])
+                login_user(user)
+                flash('Login effettuato con successo!', 'success')
+                return redirect(url_for('home.homepage'))
+            else:
+                flash('Password errata. Riprova.', 'danger')
         else:
-            flash('Credenziali errate. Riprova.', 'danger')  # Mostra un messaggio di errore se le credenziali sono sbagliate
+            flash('Utente non trovato.', 'danger')
 
-    # Renderizza il template del login per le richieste GET
     return render_template('login.html')
 
-# Rotta per la registrazione dell'utente
+# Rotta per la registrazione utente
 @login_bp.route('/register', methods=['GET', 'POST'])
 def register():
-       # Gestione della sottomissione del modulo
     if request.method == 'POST':
-        # Recupero dei dati dal modulo
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        password_hash = generate_password_hash(password)  # Hash della password prima di salvarla nel DB
+        password_hash = generate_password_hash(password)
 
-        # Connessione al database e controllo dell'unicità del nome utente e dell'email
         conn = get_db()
         with conn.cursor() as cursor:
             try:
-                # Controlla se esiste già un utente con lo stesso username
+                # Verifica se username esiste
                 cursor.execute("SELECT 1 FROM users WHERE username = %s", (username,))
                 if cursor.fetchone():
                     flash('Username già in uso. Scegli un altro nome utente.', 'danger')
                     return render_template("registrazione.html")
 
-                # Controlla se esiste già un utente con la stessa email
+                # Verifica se email esiste
                 cursor.execute("SELECT 1 FROM users WHERE email = %s", (email,))
                 if cursor.fetchone():
                     flash('Email già registrata. Usa un\'altra email.', 'danger')
                     return render_template("registrazione.html")
 
-                # Inserisce i dati del nuovo utente nel database
+                # Inserisci nuovo utente
                 cursor.execute(
                     "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
                     (username, email, password_hash)
                 )
-                conn.commit()  # Commette la transazione per salvare i dati
-
-                flash("Registrazione completata! Ora puoi effettuare il login.", 'success')  # Mostra un messaggio di successo
-                return redirect(url_for("login_bp.login"))  # Redirige alla pagina di login dopo una registrazione riuscita
+                conn.commit()
+                flash("Registrazione completata! Ora puoi effettuare il login.", 'success')
+                return redirect(url_for("login_bp.login"))
 
             except Exception as e:
-                conn.rollback()  # Esegui il rollback in caso di errore
-                flash("Errore durante la registrazione: " + str(e), 'danger')  # Mostra un messaggio di errore
-                return render_template("registrazione.html")  # Renderizza di nuovo la pagina di registrazione in caso di errore
-
+                conn.rollback()
+                flash("Errore durante la registrazione: " + str(e), 'danger')
+                return render_template("registrazione.html")
         conn.close()
 
-        
-
-    # Renderizza il template di registrazione per le richieste GET
     return render_template("registrazione.html")
 
-# Rotta per il logout dell'utente
+
+# Rotta per il logout
+
 @login_bp.route('/logout')
-@login_required  # Assicura che l'utente sia loggato prima di poter fare il logout
+@login_required
 def logout():
-    logout_user()  # Logga l'utente
-    flash('Logout effettuato con successo.', 'success')  # Mostra un messaggio di successo
-    return redirect(url_for('home.homepage'))  # Redirige alla homepage dopo il logout
+    logout_user()
+    flash('Logout effettuato con successo.', 'success')
+    return redirect(url_for('home.homepage'))
