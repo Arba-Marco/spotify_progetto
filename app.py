@@ -38,7 +38,7 @@ db_wrapper = DatabaseWrapper(
     database=os.environ.get("MYSQL_DATABASE", "spotify")
 )
 
-# Registrazione dei Blueprint
+# Registrazione dei Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(home_bp)
 app.register_blueprint(login_bp, url_prefix="/auth")

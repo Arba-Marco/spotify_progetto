@@ -53,7 +53,7 @@ def get_db():
         cursorclass=pymysql.cursors.DictCursor
     )
 
-# Per testare in modalità standalone (opzionale)
+# Per testare in modalità standalone 
 if __name__ == "__main__":
     db_wrapper = DatabaseWrapper(
         host=os.environ.get("MYSQL_HOST", "localhost"),
