@@ -30,7 +30,7 @@ def load_user(user_id):
         return User(user_data['id'], user_data['username'], user_data['email'])
     return None
 
-# Istanzia il DatabaseWrapper per creare le tabelle all'avvio (se non esistono)
+# Istanzia il DatabaseWrapper per creare le tabelle all'avvio (se non esistono)A
 db_wrapper = DatabaseWrapper(
     host=os.environ.get("MYSQL_HOST", "localhost"),
     user=os.environ.get("MYSQL_USER", "root"),

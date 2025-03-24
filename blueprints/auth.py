@@ -5,17 +5,17 @@ from spotipy.oauth2 import SpotifyOAuth
 # Configurazione delle credenziali per l'autenticazione con Spotify
 SPOTIFY_CLIENT_ID = "d3c1badbe879439c85f4ee31bf30a33a"
 SPOTIFY_CLIENT_SECRET = "12ccffe121454ab892ccd7890c4a8db1"
-SPOTIFY_REDIRECT_URI = "https://5000-arbamarco-spotifyproget-y4u9mja6sej.ws-eu118.gitpod.io/callback"
+SPOTIFY_REDIRECT_URI = "https://5000-arbamarco-spotifyproget-edm6x806cyt.ws-eu118.gitpod.io/callback"
 
 auth_bp = Blueprint('auth', __name__)
 
 # Configurazione dell'autenticazione Spotify
-sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
-                         client_secret=SPOTIFY_CLIENT_SECRET,
-                         redirect_uri=SPOTIFY_REDIRECT_URI,
-                         scope='playlist-modify-public playlist-modify-private user-library-read',
-                         )
-
+sp_oauth = SpotifyOAuth(
+    client_id=SPOTIFY_CLIENT_ID,
+    client_secret=SPOTIFY_CLIENT_SECRET,
+    redirect_uri=SPOTIFY_REDIRECT_URI,
+    scope='playlist-modify-public playlist-modify-private user-library-read user-read-private'
+)
 @auth_bp.route('/')
 def login():
     """Mostra la homepage senza alcun utente loggato."""
