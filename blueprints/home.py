@@ -155,7 +155,7 @@ def view_saved_playlists():
     else:
         playlist_ids = session.get('saved_playlists', [])
 
-    # Recupera dettagli playlist da Spotify
+    # Recupera dettagli playlist da SPOTIFI
     for pid in playlist_ids:
         try:
             playlists.append(sp.playlist(pid))
