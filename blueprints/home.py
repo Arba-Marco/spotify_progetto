@@ -3,6 +3,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 from flask_login import current_user
 from services.db import get_db
+import pandas as pd
+import plotly.express as px
 
 home_bp = Blueprint('home', __name__)
 
@@ -53,6 +55,58 @@ def homepage():
             search_results = search_spotify(query)
     
     return render_template('home.html', user_info=user_info, playlists=playlists, search_results=search_results)
+
+
+@home_bp.route('/playlist_analysis')
+def playlist_analysis():
+    """Visualizza l'analisi delle playlist (top artisti, top album, distribuzione dei generi)."""
+    sp = get_spotify_client()
+
+    if not current_user.is_authenticated:
+        flash("Devi essere loggato per vedere l'analisi delle playlist", "warning")
+        return redirect(url_for('home.homepage'))
+    
+    try:
+        # Recupera tutte le playlist dell'utente
+        playlists = sp.current_user_playlists()['items']
+        tracks_data = []
+
+        # Per ogni playlist, recupera le tracce
+        for playlist in playlists:
+            playlist_id = playlist['id']
+            tracks = sp.playlist_tracks(playlist_id)['items']
+
+            for track in tracks:
+                track_data = {
+                    'track_name': track['track']['name'],
+                    'artist_name': track['track']['artists'][0]['name'],
+                    'album_name': track['track']['album']['name'],
+                    'genre': track['track']['album']['genres'][0] if 'genres' in track['track']['album'] else 'Unknown'
+                }
+                tracks_data.append(track_data)
+
+        # Converti i dati in un DataFrame pandas
+        df = pd.DataFrame(tracks_data)
+
+        # Analisi: Top 5 artisti
+        top_artists = df['artist_name'].value_counts().head(5)
+
+        # Analisi: Top 5 album
+        top_albums = df['album_name'].value_counts().head(5)
+
+        # Analisi: Distribuzione dei generi musicali
+        genre_distribution = df['genre'].value_counts()
+
+        # Crea grafici per le analisi
+        artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values, labels={'x': 'Artista', 'y': 'Numero di brani'})
+        album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values, labels={'x': 'Album', 'y': 'Numero di brani'})
+        genre_fig = px.pie(genre_distribution, names=genre_distribution.index, values=genre_distribution.values, title='Distribuzione dei generi musicali')
+
+        return render_template('playlist_analysis.html', artist_fig=artist_fig.to_html(), album_fig=album_fig.to_html(), genre_fig=genre_fig.to_html())
+    
+    except Exception as e:
+        flash(f"Errore durante l'analisi delle playlist: {e}", "danger")
+        return redirect(url_for('home.homepage'))
 
 @home_bp.route('/search_playlist', methods=['POST', 'GET'])
 def search_playlist():

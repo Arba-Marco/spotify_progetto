@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisi delle Playlist</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Analisi delle tue Playlist</h1>
+
+        <div class="mb-4">
+            <h3>Top 5 Artisti Più Presenti</h3>
+            <div>{{ artist_fig|safe }}</div>
+        </div>
+
+        <div class="mb-4">
+            <h3>Top 5 Album Più Presenti</h3>
+            <div>{{ album_fig|safe }}</div>
+        </div>
+
+        <div class="mb-4">
+            <h3>Distribuzione dei Generi Musicali</h3>
+            <div>{{ genre_fig|safe }}</div>
+        </div>
+
+        <!-- Aggiungi un pulsante per tornare alla pagina precedente -->
+        <button class="btn btn-secondary" onclick="window.history.back();">Torna Indietro</button>
+    </div>
+</body>
+</html>
