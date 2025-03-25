@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from flask_login import LoginManager
+
 from blueprints.auth import auth_bp      # Blueprint per l'autenticazione (Spotify)
 from blueprints.home import home_bp      # Blueprint per la homepage
 from blueprints.login import login_bp    # Blueprint per il login con Flask-Login

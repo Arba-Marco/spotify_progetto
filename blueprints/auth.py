@@ -1,11 +1,12 @@
 from flask import Blueprint, redirect, request, url_for, session, render_template
 import spotipy
+from flask_login import login_required,logout_user
 from spotipy.oauth2 import SpotifyOAuth
 
 # Configurazione delle credenziali per l'autenticazione con Spotify
 SPOTIFY_CLIENT_ID = "d3c1badbe879439c85f4ee31bf30a33a"
 SPOTIFY_CLIENT_SECRET = "12ccffe121454ab892ccd7890c4a8db1"
-SPOTIFY_REDIRECT_URI = "https://5000-arbamarco-spotifyproget-klqajfigswk.ws-eu118.gitpod.io/callback"
+SPOTIFY_REDIRECT_URI = "https://5000-arbamarco-spotifyproget-6cpvsk1l1p1.ws-eu118.gitpod.io/callback"
 
 # Blueprint per l'autenticazione
 auth_bp = Blueprint('auth', __name__)
@@ -63,21 +64,38 @@ def callback():
 
     return redirect(url_for('home.homepage'))  # Dopo il login, reindirizza alla homepage
 
+
+
 @auth_bp.route('/logout')
+@login_required
 def logout():
-    """Logout solo da Spotify e rimuove immediatamente i messaggi flash."""
-    session.pop('token_info', None)  # Rimuove solo il token di Spotify
-    session.pop('_flashes', None)  # Cancella immediatamente i messaggi flash
-    return redirect(url_for('auth.login'))  # Torna alla login
+    """Logout solo da Spotify, mantiene la sessione Flask attiva."""
+    # Effettua il logout con Flask-Login (rimuove l'utente dalla sessione di Flask)
+    logout_user()
+    
+    # Rimuove solo il token di Spotify dalla sessione, senza influire sulla sessione di Flask
+    session.pop('token_info', None)
+    session.pop('user_info', None)  # Rimuove anche le informazioni dell'utente Spotify dalla sessione
+    
+    # Rimuove i messaggi flash
+    session.pop('_flashes', None)  
+    
+    # Reindirizza alla homepage
+    return redirect(url_for('home.homepage'))
+
+#@auth_bp.route('/logout')
+#def logout():
+    #"""Logout solo da Spotify, mantiene la sessione Flask attiva."""
+    # Rimuove solo il token di Spotify dalla sessione
+    #session.pop('token_info', None)  
+    #session.pop('user_info', None)  # Rimuove anche le informazioni dell'utente Spotify dalla sessione (se presente)
+    
+    # Reindirizza alla pagina di login senza alterare la sessione di Flask
+    #return redirect(url_for('auth.login')) # Torna alla pagina di login senza influenzare la sessione di Flask
 
 @auth_bp.route('/profile')
 def profile():
-    """Mostra il profilo utente con token aggiornato."""
-    access_token = get_token()
-    if not access_token:
-        return redirect(url_for('auth.login_spotify'))  # Richiede il login se non c'è un token valido
-
-    sp = spotipy.Spotify(auth=access_token)
-    user_info = sp.current_user()
-
+    if 'user_info' not in session:
+        return redirect(url_for('auth.login'))  # Se non è loggato su Spotify, redirigi al login
+    user_info = session.get('user_info')
     return render_template('profile.html', user_info=user_info)
