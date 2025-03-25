@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le mie Playlist su Spotify</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Le mie Playlist su Spotify</h1>
+
+        {% if playlists %}
+            <ul class="list-group">
+                {% for playlist in playlists %}
+                    <li class="list-group-item">
+                        <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
+                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Non hai playlist su Spotify.</p>
+        {% endif %}
+
+        {% if user_info %}
+            <!-- Il bottone di analisi viene mostrato solo se l'utente è autenticato su Spotify -->
+            <a href="{{ url_for('home.playlist_analysis') }}" class="btn btn-success">Analizza le tue Playlist</a>
+        {% endif %}
+
+        <br>
+        <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
+    </div>
+</body>
+</html>

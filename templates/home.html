@@ -76,7 +76,10 @@
     {% endif %}
     <!-- Link per visualizzare le playlist salvate -->
     <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-secondary">Playlist Salvate</a>
-
+    {% if user_info %}
+    <a href="{{ url_for('home.view_spotify_playlists') }}" class="btn btn-info">Le mie Playlist su Spotify</a>
+    {% endif %}
+    
         {% if user_info and playlists %}
             <h2>Le tue Playlist:</h2>
             <ul>

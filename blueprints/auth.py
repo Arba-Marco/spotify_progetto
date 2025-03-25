@@ -6,7 +6,7 @@ from spotipy.oauth2 import SpotifyOAuth
 # Configurazione delle credenziali per l'autenticazione con Spotify
 SPOTIFY_CLIENT_ID = "d3c1badbe879439c85f4ee31bf30a33a"
 SPOTIFY_CLIENT_SECRET = "12ccffe121454ab892ccd7890c4a8db1"
-SPOTIFY_REDIRECT_URI = "https://5000-arbamarco-spotifyproget-6cpvsk1l1p1.ws-eu118.gitpod.io/callback"
+SPOTIFY_REDIRECT_URI = "https://5000-arbamarco-spotifyproget-pz7ajcg4azc.ws-eu118.gitpod.io/callback"
 
 # Blueprint per l'autenticazione
 auth_bp = Blueprint('auth', __name__)

@@ -11,7 +11,7 @@ home_bp = Blueprint('home', __name__)
 # Configurazione dell'autenticazione Spotify
 SPOTIFY_CLIENT_ID = 'd3c1badbe879439c85f4ee31bf30a33a'
 SPOTIFY_CLIENT_SECRET = '12ccffe121454ab892ccd7890c4a8db1'
-SPOTIFY_REDIRECT_URI = 'https://5000-arbamarco-spotifyproget-klqajfigswk.ws-eu118.gitpod.io/callback'
+SPOTIFY_REDIRECT_URI = 'https://5000-arbamarco-spotifyproget-pz7ajcg4azc.ws-eu118.gitpod.io/callback'
 
 sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
                          client_secret=SPOTIFY_CLIENT_SECRET,
@@ -37,10 +37,11 @@ def homepage():
     user_info = None
     playlists = []
 
+    # Verifica se l'utente è loggato su Spotify (controllo tramite il token in sessione)
     if token_info := session.get('token_info'):
         try:
             sp = spotipy.Spotify(auth=token_info['access_token'])
-            user_info = sp.current_user()
+            user_info = sp.current_user()  # Se l'utente è loggato, ottieni le informazioni
             playlists = sp.current_user_playlists()['items']
         except Exception as e:
             print("Errore nell'accesso Spotify:", e)
@@ -57,13 +58,14 @@ def homepage():
     return render_template('home.html', user_info=user_info, playlists=playlists, search_results=search_results)
 
 
+
 @home_bp.route('/playlist_analysis')
 def playlist_analysis():
     """Visualizza l'analisi delle playlist (top artisti, top album, distribuzione dei generi)."""
     sp = get_spotify_client()
 
-    if not current_user.is_authenticated:
-        flash("Devi essere loggato per vedere l'analisi delle playlist", "warning")
+    if not session.get('token_info'):  # Se l'utente non è autenticato, reindirizza
+        flash("Devi essere loggato su Spotify per visualizzare l'analisi delle playlist", "warning")
         return redirect(url_for('home.homepage'))
     
     try:
@@ -107,6 +109,23 @@ def playlist_analysis():
     except Exception as e:
         flash(f"Errore durante l'analisi delle playlist: {e}", "danger")
         return redirect(url_for('home.homepage'))
+
+@home_bp.route('/spotify_playlists')
+def view_spotify_playlists():
+    if 'token_info' not in session:
+        flash("Devi collegarti a Spotify per vedere le tue playlist.", "warning")
+        return redirect(url_for('home.homepage'))
+
+    sp = spotipy.Spotify(auth=session['token_info']['access_token'])
+    try:
+        playlists = sp.current_user_playlists()['items']
+        user_info = sp.current_user()  # Recupera le informazioni utente da Spotify
+    except Exception as e:
+        flash(f"Errore nel recupero delle playlist: {e}", "danger")
+        return redirect(url_for('home.homepage'))
+
+    return render_template('spotify_playlists.html', playlists=playlists, user_info=user_info)
+
 
 @home_bp.route('/search_playlist', methods=['POST', 'GET'])
 def search_playlist():
