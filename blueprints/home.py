@@ -65,23 +65,35 @@ def playlist_analysis():
     sp = get_spotify_client()
     
     try:
-        # Recupera tutte le playlist dell'utente
-        playlists = sp.current_user_playlists()['items']
         tracks_data = []
-
-        # Per ogni playlist, recupera le tracce
+        
+        # Recupera playlist pubbliche anziché quelle dell'utente
+        playlists = sp.search(q='top playlists', type='playlist', limit=5).get('playlists', {}).get('items', [])
+        
         for playlist in playlists:
-            playlist_id = playlist['id']
-            tracks = sp.playlist_tracks(playlist_id)['items']
+            playlist_id = playlist.get('id')
+            if not playlist_id:
+                continue  # Se manca l'ID della playlist, salta
+
+            tracks_response = sp.playlist_tracks(playlist_id)
+            tracks = tracks_response.get('items', []) if tracks_response else []
 
             for track in tracks:
+                if not track or 'track' not in track or track['track'] is None:
+                    continue  # Salta tracce non valide
+
                 track_data = {
-                    'track_name': track['track']['name'],
-                    'artist_name': track['track']['artists'][0]['name'],
-                    'album_name': track['track']['album']['name'],
-                    'genre': track['track']['album']['genres'][0] if 'genres' in track['track']['album'] else 'Unknown'
+                    'track_name': track['track'].get('name', 'Sconosciuto'),
+                    'artist_name': track['track']['artists'][0].get('name', 'Sconosciuto') if track['track'].get('artists') else 'Sconosciuto',
+                    'album_name': track['track']['album'].get('name', 'Sconosciuto') if track['track'].get('album') else 'Sconosciuto',
+                    'genre': track['track']['album'].get('genres', ['Unknown'])[0] if track['track'].get('album') else 'Unknown'
                 }
                 tracks_data.append(track_data)
+
+        # Se non ci sono dati, mostra un messaggio di errore
+        if not tracks_data:
+            flash("Nessuna traccia trovata nelle playlist pubbliche.", "warning")
+            return redirect(url_for('home.homepage'))
 
         # Converti i dati in un DataFrame pandas
         df = pd.DataFrame(tracks_data)
@@ -105,6 +117,8 @@ def playlist_analysis():
     except Exception as e:
         flash(f"Errore durante l'analisi delle playlist: {e}", "danger")
         return redirect(url_for('home.homepage'))
+
+
 
 @home_bp.route('/spotify_playlists')
 def view_spotify_playlists():
