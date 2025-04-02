@@ -63,10 +63,6 @@ def homepage():
 def playlist_analysis():
     """Visualizza l'analisi delle playlist (top artisti, top album, distribuzione dei generi)."""
     sp = get_spotify_client()
-
-    if not session.get('token_info'):  # Se l'utente non è autenticato, reindirizza
-        flash("Devi essere loggato su Spotify per visualizzare l'analisi delle playlist", "warning")
-        return redirect(url_for('home.homepage'))
     
     try:
         # Recupera tutte le playlist dell'utente
