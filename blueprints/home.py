@@ -61,7 +61,6 @@ def homepage():
 
 @home_bp.route('/playlist_analysis/<playlist_id>')
 def playlist_analysis(playlist_id):
-    """Analizza una singola playlist."""
     sp = get_spotify_client()
     tracks_data = []
 
@@ -78,7 +77,6 @@ def playlist_analysis(playlist_id):
             artist_id = artist_info.get('id')
             genre = 'Unknown'
 
-            # Recupera il primo genere dell'artista
             if artist_id:
                 try:
                     artist_data = sp.artist(artist_id)
@@ -87,11 +85,17 @@ def playlist_analysis(playlist_id):
                 except Exception as e:
                     print(f"Errore nel recupero genere artista {artist_id}: {e}")
 
+            release_date = track_info.get('album', {}).get('release_date')
+            year = None
+            if release_date:
+                year = release_date.split('-')[0]  # Prende solo l’anno
+
             track_data = {
                 'track_name': track_info.get('name', 'Sconosciuto'),
                 'artist_name': artist_info.get('name', 'Sconosciuto'),
                 'album_name': track_info.get('album', {}).get('name', 'Sconosciuto'),
-                'genre': genre
+                'genre': genre,
+                'release_year': year
             }
             tracks_data.append(track_data)
     except Exception as e:
@@ -108,6 +112,12 @@ def playlist_analysis(playlist_id):
     top_albums = df['album_name'].value_counts().head(5)
     genre_distribution = df['genre'].value_counts()
 
+    # 🆕 Distribuzione temporale per anno
+    release_counts = df['release_year'].value_counts().sort_index()
+    year_fig = px.bar(x=release_counts.index, y=release_counts.values,
+                      labels={'x': 'Anno di Pubblicazione', 'y': 'Numero di Brani'},
+                      title='Brani Pubblicati per Anno')
+
     artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values,
                         labels={'x': 'Artista', 'y': 'Numero di brani'})
     album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values,
@@ -118,8 +128,8 @@ def playlist_analysis(playlist_id):
     return render_template('playlist_analysis.html',
                            artist_fig=artist_fig.to_html(),
                            album_fig=album_fig.to_html(),
-                           genre_fig=genre_fig.to_html())
-
+                           genre_fig=genre_fig.to_html(),
+                           year_fig=year_fig.to_html())
 
 
 
