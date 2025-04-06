@@ -59,64 +59,67 @@ def homepage():
 
 
 
-@home_bp.route('/playlist_analysis')
-def playlist_analysis():
-    """Visualizza l'analisi delle playlist (top artisti, top album, distribuzione dei generi)."""
+@home_bp.route('/playlist_analysis/<playlist_id>')
+def playlist_analysis(playlist_id):
+    """Analizza una singola playlist."""
     sp = get_spotify_client()
-    
+    tracks_data = []
+
     try:
-        tracks_data = []
-        
-        # Recupera playlist pubbliche anziché quelle dell'utente
-        playlists = sp.search(q='top playlists', type='playlist', limit=5).get('playlists', {}).get('items', [])
-        
-        for playlist in playlists:
-            playlist_id = playlist.get('id')
-            if not playlist_id:
-                continue  # Se manca l'ID della playlist, salta
+        tracks_response = sp.playlist_tracks(playlist_id)
+        tracks = tracks_response.get('items', []) if tracks_response else []
 
-            tracks_response = sp.playlist_tracks(playlist_id)
-            tracks = tracks_response.get('items', []) if tracks_response else []
+        for track in tracks:
+            if not track or 'track' not in track or track['track'] is None:
+                continue
 
-            for track in tracks:
-                if not track or 'track' not in track or track['track'] is None:
-                    continue  # Salta tracce non valide
+            track_info = track['track']
+            artist_info = track_info.get('artists', [{}])[0]
+            artist_id = artist_info.get('id')
+            genre = 'Unknown'
 
-                track_data = {
-                    'track_name': track['track'].get('name', 'Sconosciuto'),
-                    'artist_name': track['track']['artists'][0].get('name', 'Sconosciuto') if track['track'].get('artists') else 'Sconosciuto',
-                    'album_name': track['track']['album'].get('name', 'Sconosciuto') if track['track'].get('album') else 'Sconosciuto',
-                    'genre': track['track']['album'].get('genres', ['Unknown'])[0] if track['track'].get('album') else 'Unknown'
-                }
-                tracks_data.append(track_data)
+            # Recupera il primo genere dell'artista
+            if artist_id:
+                try:
+                    artist_data = sp.artist(artist_id)
+                    genres = artist_data.get('genres', [])
+                    genre = genres[0] if genres else 'Unknown'
+                except Exception as e:
+                    print(f"Errore nel recupero genere artista {artist_id}: {e}")
 
-        # Se non ci sono dati, mostra un messaggio di errore
-        if not tracks_data:
-            flash("Nessuna traccia trovata nelle playlist pubbliche.", "warning")
-            return redirect(url_for('home.homepage'))
-
-        # Converti i dati in un DataFrame pandas
-        df = pd.DataFrame(tracks_data)
-
-        # Analisi: Top 5 artisti
-        top_artists = df['artist_name'].value_counts().head(5)
-
-        # Analisi: Top 5 album
-        top_albums = df['album_name'].value_counts().head(5)
-
-        # Analisi: Distribuzione dei generi musicali
-        genre_distribution = df['genre'].value_counts()
-
-        # Crea grafici per le analisi
-        artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values, labels={'x': 'Artista', 'y': 'Numero di brani'})
-        album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values, labels={'x': 'Album', 'y': 'Numero di brani'})
-        genre_fig = px.pie(genre_distribution, names=genre_distribution.index, values=genre_distribution.values, title='Distribuzione dei generi musicali')
-
-        return render_template('playlist_analysis.html', artist_fig=artist_fig.to_html(), album_fig=album_fig.to_html(), genre_fig=genre_fig.to_html())
-    
+            track_data = {
+                'track_name': track_info.get('name', 'Sconosciuto'),
+                'artist_name': artist_info.get('name', 'Sconosciuto'),
+                'album_name': track_info.get('album', {}).get('name', 'Sconosciuto'),
+                'genre': genre
+            }
+            tracks_data.append(track_data)
     except Exception as e:
-        flash(f"Errore durante l'analisi delle playlist: {e}", "danger")
-        return redirect(url_for('home.homepage'))
+        flash(f"Errore durante l'analisi della playlist: {e}", "danger")
+        return redirect(url_for('home.view_saved_playlists'))
+
+    if not tracks_data:
+        flash("Nessuna traccia trovata nella playlist.", "warning")
+        return redirect(url_for('home.view_saved_playlists'))
+
+    df = pd.DataFrame(tracks_data)
+
+    top_artists = df['artist_name'].value_counts().head(5)
+    top_albums = df['album_name'].value_counts().head(5)
+    genre_distribution = df['genre'].value_counts()
+
+    artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values,
+                        labels={'x': 'Artista', 'y': 'Numero di brani'})
+    album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values,
+                       labels={'x': 'Album', 'y': 'Numero di brani'})
+    genre_fig = px.pie(genre_distribution, names=genre_distribution.index,
+                       values=genre_distribution.values, title='Distribuzione dei generi musicali')
+
+    return render_template('playlist_analysis.html',
+                           artist_fig=artist_fig.to_html(),
+                           album_fig=album_fig.to_html(),
+                           genre_fig=genre_fig.to_html())
+
 
 
 
