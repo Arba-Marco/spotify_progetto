@@ -2,36 +2,52 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisi delle Playlist</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <title>Analisi Playlist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap e Plotly -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .graph-container {
+            margin-bottom: 50px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Analisi delle tue Playlist</h1>
+<div class="container my-4">
+    <h1 class="mb-4">Analisi della Playlist</h1>
 
-        <div class="mb-4">
-            <h3>Top 5 Artisti Più Presenti</h3>
-            <div>{{ artist_fig|safe }}</div>
-        </div>
-
-        <div class="mb-4">
-            <h3>Top 5 Album Più Presenti</h3>
-            <div>{{ album_fig|safe }}</div>
-        </div>
-
-        <div class="mb-4">
-            <h3>Distribuzione dei Generi Musicali</h3>
-            <div>{{ genre_fig|safe }}</div>
-        </div>
-
-        <div class="mb-4">
-            <h3>Distribuzione Temporale dei Brani (per Anno)</h3>
-            <div>{{ year_fig|safe }}</div>
-        </div>
-
-        <!-- Aggiungi un pulsante per tornare alla pagina precedente -->
-        <button class="btn btn-secondary" onclick="window.history.back();">Torna Indietro</button>
+    <div class="graph-container">
+        <h3>Distribuzione degli Artisti</h3>
+        <div>{{ artist_fig|safe }}</div>
     </div>
+
+    <div class="graph-container">
+        <h3>Distribuzione degli Album</h3>
+        <div>{{ album_fig|safe }}</div>
+    </div>
+
+    <div class="graph-container">
+        <h3>Distribuzione dei Generi</h3>
+        <div>{{ genre_fig|safe }}</div>
+    </div>
+
+    <div class="graph-container">
+        <h3>Brani Pubblicati per Anno</h3>
+        <div>{{ year_fig|safe }}</div>
+    </div>
+
+    <div class="graph-container">
+        <h3>Distribuzione della Popolarità dei Brani</h3>
+        <div>{{ popularity_fig|safe }}</div>
+    </div>
+
+    <div class="graph-container">
+        <h3>Distribuzione della Durata dei Brani (0-10 minuti)</h3>
+        <div>{{ duration_fig|safe }}</div>
+    </div>
+
+    <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-secondary mt-4">Torna alle Playlist Salvate</a>
+</div>
 </body>
 </html>

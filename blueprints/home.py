@@ -88,14 +88,17 @@ def playlist_analysis(playlist_id):
             release_date = track_info.get('album', {}).get('release_date')
             year = None
             if release_date:
-                year = release_date.split('-')[0]  # Prende solo l’anno
+                year = release_date.split('-')[0]
 
+            duration_ms = track_info.get('duration_ms', 0)
+            duration_min = round(duration_ms / 60000, 2)
             track_data = {
                 'track_name': track_info.get('name', 'Sconosciuto'),
                 'artist_name': artist_info.get('name', 'Sconosciuto'),
                 'album_name': track_info.get('album', {}).get('name', 'Sconosciuto'),
                 'genre': genre,
-                'release_year': year
+                'release_year': year,
+                'duration_min': duration_min
             }
             tracks_data.append(track_data)
     except Exception as e:
@@ -111,9 +114,8 @@ def playlist_analysis(playlist_id):
     top_artists = df['artist_name'].value_counts().head(5)
     top_albums = df['album_name'].value_counts().head(5)
     genre_distribution = df['genre'].value_counts()
-
-    # 🆕 Distribuzione temporale per anno
     release_counts = df['release_year'].value_counts().sort_index()
+
     year_fig = px.bar(x=release_counts.index, y=release_counts.values,
                       labels={'x': 'Anno di Pubblicazione', 'y': 'Numero di Brani'},
                       title='Brani Pubblicati per Anno')
@@ -125,11 +127,25 @@ def playlist_analysis(playlist_id):
     genre_fig = px.pie(genre_distribution, names=genre_distribution.index,
                        values=genre_distribution.values, title='Distribuzione dei generi musicali')
 
+    # ✅ Istogramma con più suddivisioni (0 - 10 min, ogni 0.25 min)
+    bins = [round(x * 0.25, 2) for x in range(0, 41)]  # 0 to 10 minutes in 15 sec steps
+    duration_fig = px.histogram(df, x='duration_min',
+                                category_orders={"duration_min": bins},
+                                labels={'duration_min': 'Durata (minuti)'},
+                                title='Distribuzione della Durata dei Brani nella Playlist',
+                                color_discrete_sequence=['#00BFFF'])
+    duration_fig.update_xaxes(dtick=0.5)  # visualizza un tick ogni 30 sec
+    duration_fig.update_layout(bargap=0.2)
+
     return render_template('playlist_analysis.html',
-                           artist_fig=artist_fig.to_html(),
-                           album_fig=album_fig.to_html(),
-                           genre_fig=genre_fig.to_html(),
-                           year_fig=year_fig.to_html())
+                           artist_fig=artist_fig.to_html(full_html=False),
+                           album_fig=album_fig.to_html(full_html=False),
+                           genre_fig=genre_fig.to_html(full_html=False),
+                           year_fig=year_fig.to_html(full_html=False),
+                           duration_fig=duration_fig.to_html(full_html=False))
+
+
+
 
 
 
