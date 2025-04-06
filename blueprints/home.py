@@ -92,13 +92,17 @@ def playlist_analysis(playlist_id):
 
             duration_ms = track_info.get('duration_ms', 0)
             duration_min = round(duration_ms / 60000, 2)
+
+            popularity = track_info.get('popularity', 0)  # Aggiungi la popolarità del brano
+
             track_data = {
                 'track_name': track_info.get('name', 'Sconosciuto'),
                 'artist_name': artist_info.get('name', 'Sconosciuto'),
                 'album_name': track_info.get('album', {}).get('name', 'Sconosciuto'),
                 'genre': genre,
                 'release_year': year,
-                'duration_min': duration_min
+                'duration_min': duration_min,
+                'popularity': popularity  # Aggiungi la popolarità nel track_data
             }
             tracks_data.append(track_data)
     except Exception as e:
@@ -127,6 +131,11 @@ def playlist_analysis(playlist_id):
     genre_fig = px.pie(genre_distribution, names=genre_distribution.index,
                        values=genre_distribution.values, title='Distribuzione dei generi musicali')
 
+    # Grafico della popolarità (modifica)
+    popularity_fig = px.bar(df, x='release_year', y='popularity',  # Usa 'popularity' per il grafico
+                            labels={'release_year': 'Anno di Pubblicazione', 'popularity': 'Popolarità'},
+                            title='Distribuzione della Popolarità dei Brani')
+
     # ✅ Istogramma con più suddivisioni (0 - 10 min, ogni 0.25 min)
     bins = [round(x * 0.25, 2) for x in range(0, 41)]  # 0 to 10 minutes in 15 sec steps
     duration_fig = px.histogram(df, x='duration_min',
@@ -142,10 +151,8 @@ def playlist_analysis(playlist_id):
                            album_fig=album_fig.to_html(full_html=False),
                            genre_fig=genre_fig.to_html(full_html=False),
                            year_fig=year_fig.to_html(full_html=False),
-                           duration_fig=duration_fig.to_html(full_html=False))
-
-
-
+                           duration_fig=duration_fig.to_html(full_html=False),
+                           popularity_fig=popularity_fig.to_html(full_html=False))  # Passa anche popularity_fig
 
 
 

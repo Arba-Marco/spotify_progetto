@@ -2,52 +2,118 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Analisi Playlist</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap e Plotly -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Analisi Playlist</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Plotly.js -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    <!-- Custom CSS -->
     <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fa;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        h1 {
+            color: #343a40;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        h3 {
+            color: #007bff;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
         .graph-container {
-            margin-bottom: 50px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+        .graph-container p {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        .btn-custom {
+            background-color: #007bff;
+            color: white;
+            border-radius: 30px;
+            padding: 10px 20px;
+            text-transform: uppercase;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-<div class="container my-4">
-    <h1 class="mb-4">Analisi della Playlist</h1>
 
+<div class="container my-5">
+    <!-- Header -->
+    <h1 class="text-center">Analisi della Playlist</h1>
+    
+    <!-- Grafico degli Artisti -->
     <div class="graph-container">
         <h3>Distribuzione degli Artisti</h3>
         <div>{{ artist_fig|safe }}</div>
     </div>
 
+    <!-- Grafico degli Album -->
     <div class="graph-container">
         <h3>Distribuzione degli Album</h3>
         <div>{{ album_fig|safe }}</div>
     </div>
 
+    <!-- Grafico dei Generi -->
     <div class="graph-container">
         <h3>Distribuzione dei Generi</h3>
         <div>{{ genre_fig|safe }}</div>
     </div>
 
+    <!-- Grafico Anni di Pubblicazione -->
     <div class="graph-container">
         <h3>Brani Pubblicati per Anno</h3>
         <div>{{ year_fig|safe }}</div>
     </div>
 
+    <!-- Grafico Popolarità nel Tempo -->
     <div class="graph-container">
-        <h3>Distribuzione della Popolarità dei Brani</h3>
+        <h3>Evoluzione della Popolarità nel Tempo</h3>
+        <p class="text-muted">Popolarità media per anno di pubblicazione</p>
         <div>{{ popularity_fig|safe }}</div>
     </div>
 
+    <!-- Grafico della Durata dei Brani -->
     <div class="graph-container">
         <h3>Distribuzione della Durata dei Brani (0-10 minuti)</h3>
         <div>{{ duration_fig|safe }}</div>
     </div>
 
-    <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-secondary mt-4">Torna alle Playlist Salvate</a>
+    <!-- Grafico Popolarità dei Brani -->
+    <div class="graph-container">
+        <h3>Distribuzione della Popolarità dei Brani</h3>
+        <div>{{ popularity_fig|safe }}</div>
+    </div>
+    
+
+    <!-- Bottone per Tornare alla Lista di Playlist -->
+    <div class="text-center">
+        <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-custom mt-4">Torna alle Playlist Salvate</a>
+    </div>
 </div>
+
+<!-- Bootstrap JS e jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 </html>
