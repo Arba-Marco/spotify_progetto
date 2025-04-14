@@ -410,6 +410,30 @@ def view_saved_playlists():
 
     return render_template('saved_playlists.html', playlists=playlists)
 
+
+
+@home_bp.route('/remove_saved_playlist/<playlist_id>', methods=['POST'])
+def remove_saved_playlist(playlist_id):
+    """Rimuove una playlist salvata dal database o dalla sessione."""
+    if current_user.is_authenticated:
+        try:
+            conn = get_db()
+            with conn.cursor() as cursor:
+                cursor.execute('DELETE FROM saved_playlists WHERE user_id = %s AND playlist_id = %s', 
+                               (current_user.id, playlist_id))
+                conn.commit()
+            conn.close()
+            flash("Playlist rimossa dal tuo profilo!", "success")
+        except Exception as e:
+            flash(f"Errore nel rimuovere la playlist: {e}", "danger")
+    else:
+        if playlist_id in session.get('saved_playlists', []):
+            session['saved_playlists'].remove(playlist_id)
+            session.modified = True
+            flash("Playlist rimossa temporaneamente dalla sessione.", "info")
+    
+    return redirect(url_for('home.view_saved_playlists'))
+    
 @home_bp.route('/favorites')
 def view_favorites():
     """Mostra le playlist preferite salvate nella sessione."""

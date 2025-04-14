@@ -55,6 +55,8 @@ class DatabaseWrapper:
             )
         ''')
 
+       
+
 # Funzione helper per ottenere una connessione al database utilizzando variabili d'ambiente
 def get_db():
     return pymysql.connect(
