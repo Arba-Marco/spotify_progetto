@@ -4,38 +4,45 @@ from flask_login import login_user, logout_user, login_required
 from services.db import get_db  # Funzione per interagire con il database
 from werkzeug.security import check_password_hash, generate_password_hash  # Per l'hashing delle password
 from models.user import User  # Modello User per creare oggetti utente
+import os
+from services.db import DatabaseWrapper  # Importa la classe DatabaseWrapper
+from models.user import User  # Importa la classe User
 
-# Creazione di un Blueprint per le rotte relative al login
 login_bp = Blueprint('login_bp', __name__)
 
-
-# Rotta per il login dell'utente
+# Rotta per il login
 @login_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        conn = get_db()
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-            user_data = cursor.fetchone()
-        conn.close()
+        # Crea una connessione al database tramite DatabaseWrapper
+        db_wrapper = DatabaseWrapper(
+            host=os.environ.get("MYSQL_HOST", "localhost"),
+            user=os.environ.get("MYSQL_USER", "root"),
+            password=os.environ.get("MYSQL_PASSWORD", "password"),
+            database=os.environ.get("MYSQL_DATABASE", "spotify")
+        )
 
+        # Recupera i dati dell'utente dal database
+        user_data = db_wrapper.fetch_query("SELECT * FROM users WHERE username = %s", (username,))
+        
         if user_data:
+            user_data = user_data[0]  # Prendi il primo (e unico) risultato
             if check_password_hash(user_data['password_hash'], password):
+                # Crea un oggetto User
                 user = User(user_data['id'], user_data['username'], user_data['email'])
-                login_user(user)
+                login_user(user)  # Effettua il login dell'utente
                 flash("Accesso effettuato con successo.", "success")
                 return redirect(url_for('home.homepage'))
             else:
                 flash("Password errata. Controlla le tue credenziali e riprova.", "danger")
         else:
             flash("Utente non trovato. Verifica il tuo username.", "danger")
-
     return render_template('login.html')
 
-# Rotta per la registrazione utente
+# Rotta per la registrazione (aggiungi qui la logica della registrazione, se necessario)
 @login_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -44,38 +51,38 @@ def register():
         password = request.form['password']
         password_hash = generate_password_hash(password)
 
-        conn = get_db()
-        with conn.cursor() as cursor:
-            try:
-                # Verifica se lo username è già in uso
-                cursor.execute("SELECT 1 FROM users WHERE username = %s", (username,))
-                if cursor.fetchone():
-                    flash("Il nome utente è già in uso. Scegli un altro nome utente.", "danger")
-                    return render_template("registrazione.html")
+        # Crea una connessione al database tramite DatabaseWrapper
+        db_wrapper = DatabaseWrapper(
+            host=os.environ.get("MYSQL_HOST", "localhost"),
+            user=os.environ.get("MYSQL_USER", "root"),
+            password=os.environ.get("MYSQL_PASSWORD", "password"),
+            database=os.environ.get("MYSQL_DATABASE", "spotify")
+        )
 
-                # Verifica se l'email è già registrata
-                cursor.execute("SELECT 1 FROM users WHERE email = %s", (email,))
-                if cursor.fetchone():
-                    flash("Questa email è già registrata. Usa un'email diversa.", "danger")
-                    return render_template("registrazione.html")
+        # Verifica se lo username è già in uso
+        if db_wrapper.fetch_query("SELECT 1 FROM users WHERE username = %s", (username,)):
+            flash("Il nome utente è già in uso. Scegli un altro nome utente.", "danger")
+            return render_template("registrazione.html")
 
-                # Inserisci nuovo utente
-                cursor.execute(
-                    "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
-                    (username, email, password_hash)
-                )
-                conn.commit()
-                flash("Registrazione completata con successo! Ora puoi effettuare il login.", "success")
-                return redirect(url_for("login_bp.login"))
+        # Verifica se l'email è già registrata
+        if db_wrapper.fetch_query("SELECT 1 FROM users WHERE email = %s", (email,)):
+            flash("Questa email è già registrata. Usa un'email diversa.", "danger")
+            return render_template("registrazione.html")
 
-            except Exception as e:
-                conn.rollback()
-                flash("Si è verificato un errore durante la registrazione: " + str(e), "danger")
-                return render_template("registrazione.html")
-        conn.close()
-
+        try:
+            # Inserisci il nuovo utente nel database
+            db_wrapper.execute_query(
+                "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
+                (username, email, password_hash)
+            )
+            flash("Registrazione completata con successo! Ora puoi effettuare il login.", "success")
+            return redirect(url_for("login_bp.login"))
+        except Exception as e:
+            flash("Si è verificato un errore durante la registrazione: " + str(e), "danger")
+            return render_template("registrazione.html")
+        
     return render_template("registrazione.html")
-
+    
 # Rotta per il logout
 @login_bp.route('/logout')
 @login_required

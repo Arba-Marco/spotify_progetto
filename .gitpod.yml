@@ -11,4 +11,6 @@ tasks:
   - command: docker run --name my-mysql -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=spotify -p 3306:3306 -d mysql:8.0
   - command: docker start my-mysql
   - command: pip install flask-login
-  
+  - command: pip install pandas
+  - command: pip install pymysql
+  - command: pip install plotly
