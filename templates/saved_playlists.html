@@ -5,11 +5,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Playlist Salvate</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        /* Background e font di base */
+        body {
+            background: linear-gradient(to right, #006400, #000000);
+            font-family: 'Arial', sans-serif;
+            color: #000; /* Modificato il colore del testo in nero */
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header {
+            background-color: #333;
+            color: #fff;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+        }
+
+        .alert-container {
+            margin-bottom: 20px;
+        }
+
+        /* Colori delle alert */
+        .alert-success {
+            background-color: #28a745;
+            color: #000; /* Testo nero nelle alert */
+        }
+
+        .alert-danger {
+            background-color: #dc3545;
+            color: #000; /* Testo nero nelle alert */
+        }
+
+        .alert-warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .list-group-item {
+            background-color: rgba(248, 249, 250, 0.9);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            color: #000; /* Testo nero per la lista delle playlist */
+        }
+
+        .list-group-item:hover {
+            background-color: rgba(233, 236, 239, 0.9);
+        }
+
+        .btn-primary {
+            background-color: #006400;
+            color: #fff;
+            border-radius: 50px;
+            padding: 8px 20px;
+            text-decoration: none;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background-color: #004d00;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: #fff;
+            border-radius: 50px;
+            padding: 8px 20px;
+            text-decoration: none;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        /* Pulsante torni alla home */
+        .btn-back {
+            background-color: #17a2b8;
+            color: #fff;
+            border-radius: 50px;
+            padding: 8px 20px;
+            margin-top: 20px;
+        }
+
+        .btn-back:hover {
+            background-color: #138496;
+        }
+
+        /* Modifica i testi dei pulsanti per renderli più visibili */
+        .btn {
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        /* Styling responsivo per dispositivi mobili */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .list-group-item {
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Le tue Playlist Salvate</h1>
-        
+        <div class="header">
+            <h1>Le tue Playlist Salvate</h1>
+        </div>
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="alert-container">
@@ -32,33 +166,18 @@
                         <a href="{{ url_for('home.playlist_analysis', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Analisi</a>
                     </li>
                 {% endfor %}
-
-
             </ul>
         {% else %}
             <!-- Messaggio quando non ci sono playlist salvate -->
             <p>Nessuna playlist salvata.</p>
         {% endif %}
 
-        <form action="{{ url_for('home.compare_playlists') }}" method="POST">
-            {% for playlist in playlists %}
-              <div>
-                <input type="checkbox" name="playlist_ids" value="{{ playlist['id'] }}">
-                <label>{{ playlist['name'] }}</label>
-              </div>
-            {% endfor %}
-            <button type="submit">Confronta Playlist</button>
-          </form>
-          
         <br>
         <!-- Link per tornare alla home page -->
         <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
 
         <!-- Alternativa: pulsante per tornare indietro -->
         <button class="btn btn-secondary" onclick="window.history.back();">Torna Indietro</button>
-        
-        <!-- Bottone per accedere all'analisi della playlist -->
-        <!-- Bottone per accedere all'analisi delle playlist -->
     </div>
 </body>
 </html>

@@ -6,14 +6,225 @@
     <title>Profilo Utente</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
-        body { background-color: #f2f2f2; }
-        .container { max-width: 800px; margin: 40px auto; padding: 20px; background-color: #fff; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .header { background-color: #333; color: #fff; padding: 10px; text-align: center; }
-        .header h1 { margin: 0; }
-        .btn-container { text-align: center; margin-top: 20px; }
-        .search-form { margin-top: 20px; }
-        .search-form input[type="text"] { width: 70%; height: 40px; padding: 10px; font-size: 18px; border: 1px solid #ccc; }
-        .search-form button[type="submit"] { width: 20%; height: 40px; padding: 10px; font-size: 18px; background-color: #333; color: #fff; border: none; cursor: pointer; }
+        /* Body con background gradient */
+        body {
+            background: linear-gradient(to right, #006400, #000000);
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        /* Container con contenuto centrato */
+        .container {
+            max-width: 900px;
+            padding: 50px;
+            background-color: rgba(255, 255, 255, 0.95); /* Sfondo leggermente trasparente */
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            color: #333; /* Cambiato il colore del testo in nero */
+        }
+
+        .header {
+            background-color: #333;
+            color: #fff;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* Pulsanti centrati senza animazioni */
+        .btn {
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        /* Colori dei pulsanti */
+        .btn-primary {
+            background-color: #006400;
+            color: #fff;
+        }
+
+        .btn-danger {
+            background-color: #dc3545 !important;
+            color: #fff !important;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+
+        .btn-spotify {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .btn-save-playlist {
+            background-color: #006400;
+            color: #fff !important;
+        }
+
+        /* Stile delle playlist */
+        .playlist-item {
+            background-color: rgba(248, 249, 250, 0.9); /* Sfondo trasparente per evitare il bianco */
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .playlist-item:hover {
+            background-color: rgba(233, 236, 239, 0.9);
+        }
+
+        .playlist-item strong {
+            font-size: 1.2em;
+        }
+
+        .playlist-item a {
+            color: #006400;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .playlist-item a:hover {
+            color: #004d00;
+        }
+
+        /* Form di ricerca centrato */
+        .search-form {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            position: relative;
+            padding-top: 30px; /* Spaziatura per mantenere la distanza dal resto */
+        }
+
+        .search-form input[type="text"] {
+            width: 70%;
+            height: 50px;
+            padding: 15px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+
+        .search-form button[type="submit"] {
+            width: 25%;
+            height: 50px;
+            background-color: #006400;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Transizione per hover */
+        }
+
+        .search-form button[type="submit"]:hover {
+            background-color: #004d00;
+        }
+
+        /* Animazione per i risultati della ricerca */
+        .search-results {
+            margin-top: 50px;
+            opacity: 0; /* Inizialmente nascosto */
+            animation: fadeIn 1s forwards; /* Animazione per apparire */
+        }
+
+        /* Animazione di fade in */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Risultati ricerca centrati */
+        .search-results h2 {
+            font-size: 2em;
+            text-align: center;
+        }
+
+        .search-results ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .search-results li {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-results li:hover {
+            background-color: rgba(233, 236, 239, 0.9);
+        }
+
+        .search-results li a {
+            color: #006400;
+        }
+
+        .search-results li a:hover {
+            color: #004d00;
+        }
+
+        /* Responsività per dispositivi mobili */
+        @media (max-width: 768px) {
+            .search-form input[type="text"] {
+                width: 60%;
+            }
+
+            .search-form button[type="submit"] {
+                width: 35%;
+            }
+
+            .container {
+                padding: 30px;
+            }
+
+            .header h1 {
+                font-size: 2.5em;
+            }
+        }
+
+        /* Bordo sopra il pulsante Logout */
+        .logout-btn-container {
+            border-top: 2px solid #ccc;
+            padding-top: 20px;
+            margin-top: 30px;
+        }
+
     </style>
 </head>
 <body>
@@ -25,79 +236,56 @@
         <div class="btn-container">
             {% if current_user.is_authenticated %}
                 <h3>Benvenuto, {{ current_user.username }}!</h3>
-                <a href="{{ url_for('login_bp.logout') }}" class="btn btn-danger">Logout da Flask</a>
+                <div class="logout-btn-container">
+                    <a href="{{ url_for('login_bp.logout') }}" class="btn btn-danger">Logout da Flask</a>
+                </div>
             {% else %}
                 <a href="{{ url_for('login_bp.login') }}" class="btn btn-primary">Login</a>
                 <a href="{{ url_for('login_bp.register') }}" class="btn btn-secondary">Registrati</a>
             {% endif %}
         </div>
-        
-        
+
         <div class="btn-container">
             {% if user_info %}
                 <h3>Benvenuto, {{ user_info['display_name'] }}!</h3>
                 {% if user_info['images'] %}
-                    <img src="{{ user_info['images'][0]['url'] }}" width="200" alt="Immagine profilo">
+                    <img src="{{ user_info['images'][0]['url'] }}" width="150" alt="Immagine profilo" class="rounded-circle mb-3">
                 {% endif %}
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-warning">Logout da Spotify</a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-spotify">Logout da Spotify</a>
             {% else %}
-                <a href="{{ url_for('auth.login_spotify') }}" class="btn btn-success">Collegamento Spotify</a>
+                <a href="{{ url_for('auth.login_spotify') }}" class="btn btn-spotify">Collegamento a Spotify</a>
             {% endif %}
         </div>
-        
-       
-        
-        
 
-        <!-- Form di ricerca per le playlist -->
         <form method="POST" action="/search_playlist" class="search-form">
             <input type="text" name="search_query" placeholder="Cerca playlist" required />
             <button type="submit">Cerca</button>
         </form>
 
         {% if search_results %}
-        <h2>Risultati della ricerca - Playlist</h2>
-        <ul>
-            {% for playlist in search_results %}
-                <li>
-                    <strong>{{ playlist['name'] }}</strong> 
-                    <!-- Mostra il numero di brani presenti nella playlist -->
-                    {% if playlist['tracks'] %}
-                        ({{ playlist['tracks']['total'] }} brani)
-                    {% else %}
-                        (0 brani)
-                    {% endif %}
-                    <!-- Link per visualizzare i brani di una playlist -->
-                    <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza</a>
-                    <!-- Link per salvare la playlist -->
-                    <a href="{{ url_for('home.save_playlist', playlist_id=playlist['id']) }}" class="btn btn-primary">Salva Playlist</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    <!-- Link per visualizzare le playlist salvate -->
-    <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-secondary">Playlist Salvate</a>
-    {% if user_info %}
-    <a href="{{ url_for('home.view_spotify_playlists') }}" class="btn btn-info">Le mie Playlist su Spotify</a>
-    {% endif %}
-    
-        {% if user_info and playlists %}
-            <h2>Le tue Playlist:</h2>
+        <div class="search-results">
+            <h2>Risultati della ricerca - Playlist</h2>
             <ul>
-                {% for playlist in playlists %}
+                {% for playlist in search_results %}
                     <li>
                         <strong>{{ playlist['name'] }}</strong> 
-                        <!-- Mostra il numero di brani nelle playlist dell'utente -->
                         {% if playlist['tracks'] %}
                             ({{ playlist['tracks']['total'] }} brani)
                         {% else %}
                             (0 brani)
                         {% endif %}
-                        <!-- Link per visualizzare i brani della playlist -->
                         <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza</a>
+                        <a href="{{ url_for('home.save_playlist', playlist_id=playlist['id']) }}" class="btn btn-save-playlist">Salva Playlist</a>
                     </li>
                 {% endfor %}
             </ul>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-secondary">Playlist Salvate</a>
+
+        {% if user_info %}
+        <a href="{{ url_for('home.view_spotify_playlists') }}" class="btn btn-info">Le mie Playlist su Spotify</a>
         {% endif %}
     </div>
 </body>
