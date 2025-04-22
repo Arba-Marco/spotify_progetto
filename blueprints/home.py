@@ -171,7 +171,88 @@ def homepage():
     
     return render_template('home.html', user_info=user_info, playlists=playlists, search_results=search_results)
 
+@home_bp.route('/compare_playlists', methods=['POST'])
+@home_bp.route('/compare_playlists', methods=['POST'])
+def compare_playlists():
+    from blueprints.home import get_spotify_client
+    import plotly.graph_objs as go
+    from plotly.offline import plot
+    import collections
 
+    selected_ids = request.form.getlist('playlist_ids')
+    if len(selected_ids) < 2:
+        flash("Seleziona almeno due playlist.")
+        return redirect(url_for('home.saved_playlists'))
+
+    sp = get_spotify_client()
+    playlists_data = []
+    track_sets = []
+    artist_sets = []
+    popularity_lists = []
+    genre_counts = []
+    release_years = []
+
+    for playlist_id in selected_ids:
+        tracks = []
+        artists = []
+        popularity = []
+        genres = []
+        years = []
+
+        results = sp.playlist_items(playlist_id)
+        items = results['items']
+        while results['next']:
+            results = sp.next(results)
+            items.extend(results['items'])
+
+        for item in items:
+            track = item['track']
+            if not track:
+                continue
+            tracks.append(track['name'])
+            popularity.append(track['popularity'])
+            release_year = track['album']['release_date'].split("-")[0]
+            years.append(release_year)
+
+            for artist in track['artists']:
+                artists.append(artist['name'])
+                artist_info = sp.artist(artist['id'])
+                if artist_info.get('genres'):
+                    genres.append(artist_info['genres'][0])  # solo il primo genere
+
+        playlists_data.append({
+            'name': sp.playlist(playlist_id)['name'],
+            'tracks': tracks,
+            'artists': artists,
+            'popularity': popularity,
+            'genres': genres,
+            'years': years
+        })
+
+        track_sets.append(set(tracks))
+        artist_sets.append(set(artists))
+        popularity_lists.append(popularity)
+        genre_counts.append(collections.Counter(genres))
+        release_years.append(collections.Counter(years))
+
+    # Brani in comune
+    common_tracks = set.intersection(*track_sets)
+    smallest_len = min(len(p['tracks']) for p in playlists_data)
+    similarity_percent = round((len(common_tracks) / smallest_len) * 100, 2)
+
+    # Prepara i dati per il template
+    playlist_data = {
+        'playlists': playlists_data,
+        'commonTracks': list(common_tracks),
+        'similarityPercent': similarity_percent,
+        'trackData': [len(p['tracks']) for p in playlists_data],
+        'artistData': [list(set(p['artists'])) for p in playlists_data],
+        'popularityData': [sum(p['popularity']) / len(p['popularity']) if p['popularity'] else 0 for p in playlists_data],
+        'genreData': [dict(counter) for counter in genre_counts],
+        'yearData': [dict(counter) for counter in release_years],
+    }
+
+    return render_template('compare_playlists.html', playlist_data=playlist_data)
 
 @home_bp.route('/playlist_analysis/<playlist_id>')
 def playlist_analysis(playlist_id):

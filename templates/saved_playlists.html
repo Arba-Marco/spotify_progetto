@@ -32,12 +32,24 @@
                         <a href="{{ url_for('home.playlist_analysis', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Analisi</a>
                     </li>
                 {% endfor %}
+
+
             </ul>
         {% else %}
             <!-- Messaggio quando non ci sono playlist salvate -->
             <p>Nessuna playlist salvata.</p>
         {% endif %}
 
+        <form action="{{ url_for('home.compare_playlists') }}" method="POST">
+            {% for playlist in playlists %}
+              <div>
+                <input type="checkbox" name="playlist_ids" value="{{ playlist['id'] }}">
+                <label>{{ playlist['name'] }}</label>
+              </div>
+            {% endfor %}
+            <button type="submit">Confronta Playlist</button>
+          </form>
+          
         <br>
         <!-- Link per tornare alla home page -->
         <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
