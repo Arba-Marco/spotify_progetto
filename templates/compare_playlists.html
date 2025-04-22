@@ -7,7 +7,7 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        body { padding: 2rem; } /* Aggiunge un po' di spazio intorno al corpo della pagina */
+        body { padding: 2rem; } 
         .chart-container { margin-bottom: 3rem; } /* Aggiunge spazio sotto i grafici */
         h2 { margin-top: 2rem; } /* Distanza sopra i titoli dei grafici */
     </style>
@@ -44,6 +44,11 @@
         <div class="chart-container">
             <h2>Distribuzione Temporale dei Brani</h2>
             <div id="temporal_distribution"></div>
+        </div>
+
+        <!-- Bottone per Tornare alla Lista di Playlist -->
+        <div class="text-center">
+            <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-success mt-4">Torna alle Playlist Salvate</a>
         </div>
     </div>
 

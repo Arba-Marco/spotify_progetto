@@ -155,9 +155,20 @@
             {% endif %}
         {% endwith %}
 
+        <form action="{{ url_for('home.compare_playlists') }}" method="POST">
+            <!-- Lista delle playlist salvate con checkbox a lato -->
+            {% for playlist in playlists %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <label>{{ playlist['name'] }} ({{ playlist['tracks']['total'] }} brani)</label>
+                    <input type="checkbox" name="playlist_ids" value="{{ playlist['id'] }}">
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-secondary">Confronta Playlist</button>
+        </form>
+        
         {% if playlists %}
             <!-- Lista delle playlist salvate -->
-            <ul class="list-group">
+            <ul class="list-group mt-4">
                 {% for playlist in playlists %}
                     <li class="list-group-item">
                         <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
@@ -169,7 +180,7 @@
             </ul>
         {% else %}
             <!-- Messaggio quando non ci sono playlist salvate -->
-            <p>Nessuna playlist salvata.</p>
+            <p class="text-danger">Nessuna playlist salvata.</p>
         {% endif %}
 
         <br>
