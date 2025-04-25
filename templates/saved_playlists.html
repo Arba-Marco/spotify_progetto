@@ -182,7 +182,8 @@
             </div>
             <button type="submit" class="btn btn-success px-4 py-2 rounded-pill">Confronta Playlist</button>
         </form>
-        
+        <a href="{{ url_for('home.share_playlist', playlist_id=playlist.id) }}" 
+            class="btn btn-sm btn-outline-info">Condividi</a>
         {% if playlists %}
             <!-- Lista delle playlist salvate -->
             <ul class="list-group mt-4">
@@ -205,7 +206,6 @@
         <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
 
         <!-- Alternativa: pulsante per tornare indietro -->
-        <button class="btn btn-secondary" onclick="window.history.back();">Torna Indietro</button>
     </div>
 </body>
 </html>

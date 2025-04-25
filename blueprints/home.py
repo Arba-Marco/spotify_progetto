@@ -146,6 +146,9 @@ def get_playlist_data(sp, playlist_id):
 
 
 
+
+
+
 @home_bp.route('/home')
 def homepage():
     """Gestisce la homepage con la ricerca di playlist."""
