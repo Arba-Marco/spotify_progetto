@@ -12,12 +12,20 @@
             font-family: 'Arial', sans-serif;
             color: #fff;
             overflow-x: hidden;
-            height: 100vh;
+            min-height: 100vh; /* modificato qui */
             display: flex;
             justify-content: center;
             align-items: center;
             margin: 0;
-        }
+    }
+
+    .search-form {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px; /* ridotto */
+        position: relative;
+        padding-top: 10px; /* ridotto */
+    }
 
         /* Container con contenuto centrato */
         .container {
@@ -88,6 +96,10 @@
         .btn-save-playlist {
             background-color: #006400;
             color: #fff !important;
+        }
+        .btn-primary:hover {
+            background-color: #084b26; /* Azzurro personalizzato */
+            border-color: #13883a;
         }
 
         /* Stile delle playlist */

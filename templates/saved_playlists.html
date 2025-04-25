@@ -18,7 +18,20 @@
             height: 100vh;
             margin: 0;
         }
+        .playlist-card {
+        background-color: #91c595 ;
+        border: 1px solid #444;
+        transition: background-color 0.3s ease;
+    }
 
+    .playlist-card:hover {
+        background-color: #26833a;
+    }
+
+    .form-check-input {
+        transform: scale(1.3);
+        cursor: pointer;
+    }
         .container {
             max-width: 900px;
             padding: 40px;
@@ -155,15 +168,19 @@
             {% endif %}
         {% endwith %}
 
-        <form action="{{ url_for('home.compare_playlists') }}" method="POST">
-            <!-- Lista delle playlist salvate con checkbox a lato -->
-            {% for playlist in playlists %}
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <label>{{ playlist['name'] }} ({{ playlist['tracks']['total'] }} brani)</label>
-                    <input type="checkbox" name="playlist_ids" value="{{ playlist['id'] }}">
-                </div>
-            {% endfor %}
-            <button type="submit" class="btn btn-secondary">Confronta Playlist</button>
+        <form action="{{ url_for('home.compare_playlists') }}" method="POST" class="mt-4">
+            <div class="mb-4">
+                {% for playlist in playlists %}
+                    <div class="playlist-card d-flex justify-content-between align-items-center px-3 py-2 mb-2 rounded">
+                        <div>
+                            <strong>{{ playlist['name'] }}</strong><br>
+                            <small class="text-muted">{{ playlist['tracks']['total'] }} brani</small>
+                        </div>
+                        <input type="checkbox" name="playlist_ids" value="{{ playlist['id'] }}" class="form-check-input ms-3">
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-success px-4 py-2 rounded-pill">Confronta Playlist</button>
         </form>
         
         {% if playlists %}

@@ -7,191 +7,197 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        body { padding: 2rem; } 
-        .chart-container { margin-bottom: 3rem; } /* Aggiunge spazio sotto i grafici */
-        h2 { margin-top: 2rem; } /* Distanza sopra i titoli dei grafici */
+            body {
+                background: linear-gradient(to right, #006400, #000000);
+                color: #fff;
+                font-family: 'Segoe UI', sans-serif;
+                padding: 2rem 1rem;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: auto;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+                font-weight: bold;
+                text-shadow: 1px 1px 3px #000;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+                margin-top: 2.5rem;
+                margin-bottom: 1rem;
+                color: #ffffff;
+                border-bottom: 2px solid #fff;
+                padding-bottom: 0.5rem;
+            }
+
+            .chart-container {
+                background-color: #314434; /* grigio scuro */
+                padding: 1.5rem;
+                border-radius: 15px;
+                margin-bottom: 2rem;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .btn-success {
+                background-color: #00a65a;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                font-size: 1.1rem;
+                border-radius: 30px;
+                transition: background-color 0.3s ease;
+            }
+
+            .btn-success:hover {
+                background-color: #008f4c;
+            }
+
+            @media (max-width: 768px) {
+                h1 {
+                    font-size: 2rem;
+                }
+                h2 {
+                    font-size: 1.3rem;
+                }
+            }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center mb-5">Confronto Playlist</h1>
+    <div class="container text-center">
+        <h1 class="mb-5">Confronto Playlist</h1>
 
-        <!-- Sezione per visualizzare il grafico dei brani in comune -->
-        <div class="chart-container">
+        <div class="chart-container text-start">
             <h2>Brani in comune</h2>
             <div id="tracks_comparison"></div>
         </div>
 
-        <!-- Sezione per visualizzare il grafico degli artisti in comune -->
-        <div class="chart-container">
+        <div class="chart-container text-start">
             <h2>Artisti in comune</h2>
             <div id="common_artists"></div>
         </div>
 
-        <!-- Sezione per visualizzare il grafico del confronto della popolarità media -->
-        <div class="chart-container">
+        <div class="chart-container text-start">
             <h2>Confronto Popolarità Media</h2>
             <div id="popularity_comparison"></div>
         </div>
 
-        <!-- Sezione per visualizzare il grafico della distribuzione dei generi musicali -->
-        <div class="chart-container">
+        <div class="chart-container text-start">
             <h2>Distribuzione dei Generi Musicali</h2>
             <div id="genre_distribution"></div>
         </div>
 
-        <!-- Sezione per visualizzare il grafico della distribuzione temporale dei brani -->
-        <div class="chart-container">
+        <div class="chart-container text-start">
             <h2>Distribuzione Temporale dei Brani</h2>
             <div id="temporal_distribution"></div>
         </div>
 
-        <!-- Bottone per Tornare alla Lista di Playlist -->
-        <div class="text-center">
-            <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-success mt-4">Torna alle Playlist Salvate</a>
-        </div>
+        <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-success mt-4">Torna alle Playlist Salvate</a>
     </div>
 
     <script>
-        // Dati delle playlist passati dal backend, vengono convertiti in formato JSON
         var playlistData = {{ playlist_data | tojson }};
-    
-        // Funzione per generare il grafico dei brani in comune tra le playlist selezionate
+
+        const darkLayout = {
+            plot_bgcolor: '#2c2c2c',
+            paper_bgcolor: '#2c2c2c',
+            font: { color: '#ffffff' }
+        };
+
         function generateTracksComparison(data) {
-            var commonTracks = data.commonTracks;
-            var playlists = data.playlists;
-    
-            // Dati per il grafico: brani nelle playlist
             var trace1 = {
-                x: playlists.map(p => p.name),
+                x: data.playlists.map(p => p.name),
                 y: data.trackData,
                 type: 'bar',
                 name: 'Playlist'
             };
-    
-            // Dati per il grafico: brani in comune
+
             var trace2 = {
                 x: ['In Comune'],
-                y: [commonTracks.length],
+                y: [data.commonTracks.length],
                 type: 'bar',
                 name: 'In Comune'
             };
-    
-            // Impostazioni del layout del grafico
-            var layout = {
+
+            Plotly.newPlot('tracks_comparison', [trace1, trace2], {
+                ...darkLayout,
                 title: 'Brani in comune',
                 barmode: 'group'
-            };
-    
-            // Creazione del grafico con Plotly
-            Plotly.newPlot('tracks_comparison', [trace1, trace2], layout);
+            });
         }
-    
-        // Funzione per generare il grafico degli artisti in comune tra le playlist selezionate
+
         function generateCommonArtists(data) {
-            var commonArtists = data.commonTracks; // Sostituire con gli artisti in comune reali
-            var playlists = data.playlists;
-    
-            // Dati per il grafico: artisti nelle playlist
             var trace1 = {
-                x: playlists.map(p => p.name),
-                y: playlists.map(p => p.artists.length), // Aggiungere dati reali degli artisti
+                x: data.playlists.map(p => p.name),
+                y: data.playlists.map(p => p.artists.length),
                 type: 'bar',
                 name: 'Playlist'
             };
-    
-            // Dati per il grafico: artisti in comune
+
             var trace2 = {
                 x: ['In Comune'],
-                y: [commonArtists.length],
+                y: [data.commonTracks.length],
                 type: 'bar',
                 name: 'In Comune'
             };
-    
-            // Impostazioni del layout del grafico
-            var layout = {
+
+            Plotly.newPlot('common_artists', [trace1, trace2], {
+                ...darkLayout,
                 title: 'Artisti in comune',
                 barmode: 'group'
-            };
-    
-            // Creazione del grafico con Plotly
-            Plotly.newPlot('common_artists', [trace1, trace2], layout);
+            });
         }
-    
-        // Funzione per generare il grafico del confronto della popolarità media tra le playlist
+
         function generatePopularityComparison(data) {
-            var trace = {
+            Plotly.newPlot('popularity_comparison', [{
                 x: data.playlists.map(p => p.name),
                 y: data.popularityData,
                 type: 'bar',
                 name: 'Popolarità Media',
-                marker: {
-                    color: 'rgba(0,123,255,0.6)' // Colore del grafico
-                }
-            };
-    
-            // Impostazioni del layout del grafico
-            var layout = {
+                marker: { color: 'rgba(0,123,255,0.6)' }
+            }], {
+                ...darkLayout,
                 title: 'Popolarità Media',
                 xaxis: { title: 'Playlist' },
                 yaxis: { title: 'Popolarità' }
-            };
-    
-            // Creazione del grafico con Plotly
-            Plotly.newPlot('popularity_comparison', [trace], layout);
+            });
         }
-    
-        // Funzione per generare il grafico della distribuzione dei generi musicali
+
         function generateGenreDistribution(data) {
-            var genreData = data.genreData;
-    
-            // Generazione di tracciati per ogni playlist
-            var traces = genreData.map(function(genreCounts, index) {
-                return {
-                    labels: Object.keys(genreCounts),
-                    values: Object.values(genreCounts),
-                    type: 'pie',
-                    name: data.playlists[index].name
-                };
-            });
-    
-            // Impostazioni del layout del grafico
-            var layout = {
+            var traces = data.genreData.map((genreCounts, index) => ({
+                labels: Object.keys(genreCounts),
+                values: Object.values(genreCounts),
+                type: 'pie',
+                name: data.playlists[index].name
+            }));
+
+            Plotly.newPlot('genre_distribution', traces, {
+                ...darkLayout,
                 title: 'Distribuzione dei Generi Musicali',
-                showlegend: true // Mostra la legenda
-            };
-    
-            // Creazione del grafico con Plotly
-            Plotly.newPlot('genre_distribution', traces, layout);
-        }
-    
-        // Funzione per generare il grafico della distribuzione temporale dei brani
-        function generateTemporalDistribution(data) {
-            var yearData = data.yearData;
-    
-            // Generazione di tracciati per ogni playlist
-            var traces = yearData.map(function(yearCounts, index) {
-                return {
-                    x: Object.keys(yearCounts),
-                    y: Object.values(yearCounts),
-                    type: 'scatter',
-                    mode: 'lines+markers', // Tipo di grafico: linee con marcatori
-                    name: data.playlists[index].name
-                };
+                showlegend: true
             });
-    
-            // Impostazioni del layout del grafico
-            var layout = {
+        }
+
+        function generateTemporalDistribution(data) {
+            var traces = data.yearData.map((yearCounts, index) => ({
+                x: Object.keys(yearCounts),
+                y: Object.values(yearCounts),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: data.playlists[index].name
+            }));
+
+            Plotly.newPlot('temporal_distribution', traces, {
+                ...darkLayout,
                 title: 'Distribuzione Temporale dei Brani',
                 xaxis: { title: 'Anno' },
                 yaxis: { title: 'Numero di Brani' }
-            };
-    
-            // Creazione del grafico con Plotly
-            Plotly.newPlot('temporal_distribution', traces, layout);
+            });
         }
-    
-        // Chiamata alle funzioni per generare tutti i grafici
+
         generateTracksComparison(playlistData);
         generateCommonArtists(playlistData);
         generatePopularityComparison(playlistData);
