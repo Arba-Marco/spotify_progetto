@@ -96,6 +96,50 @@ def get_spotify_client():
 
 
 def get_playlist_data(sp, playlist_id):
+    try:
+        tracks_response = sp.playlist_tracks(playlist_id, limit=100)  # Limita il numero di tracce
+        tracks = tracks_response.get('items', []) if tracks_response else []
+
+        tracks_data = []
+        for track in tracks:
+            if not track or 'track' not in track or track['track'] is None:
+                continue
+
+            track_info = track['track']
+            artist_info = track_info.get('artists', [{}])[0]
+            artist_id = artist_info.get('id')
+            genre = 'Unknown'
+
+            if artist_id:
+                try:
+                    artist_data = sp.artist(artist_id)
+                    genres = artist_data.get('genres', [])
+                    genre = genres[0] if genres else 'Unknown'
+                except Exception as e:
+                    print(f"Errore nel recupero genere artista {artist_id}: {e}")
+
+            track_data = {
+                'track_id': track_info.get('id'),
+                'track_name': track_info.get('name', 'Sconosciuto'),
+                'artist_name': artist_info.get('name', 'Sconosciuto'),
+                'artist_id': artist_id,
+                'album_name': track_info.get('album', {}).get('name', 'Sconosciuto'),
+                'genre': genre,
+                'popularity': track_info.get('popularity', 0),
+                'duration_ms': track_info.get('duration_ms', 0)
+            }
+            tracks_data.append(track_data)
+
+        return {
+            'id': playlist_id,
+            'name': sp.playlist(playlist_id).get('name', 'Playlist senza nome'),
+            'tracks': tracks_data,
+            'total_tracks': len(tracks_data)
+        }
+
+    except Exception as e:
+        print(f"Errore nel recupero dati playlist {playlist_id}: {e}")
+        return None
     """Recupera e struttura i dati di una playlist."""
     tracks_data = []
     try:
@@ -194,52 +238,35 @@ def save_recommendations():
     """Salva i brani consigliati in una playlist"""
     if 'token_info' not in session:
         flash("Devi effettuare l'accesso con Spotify per salvare i suggerimenti", "warning")
-        return redirect(url_for('home.get_recommendations'))
+        return redirect(url_for('home.search_playlist'))
     
     sp = spotipy.Spotify(auth=session['token_info']['access_token'])
     track_uris = request.form.getlist('track_uris')
-    playlist_id = request.form.get('playlist_id')
-    playlist_name = request.form.get('playlist_name', 'Suggerimenti Spotify')
     
     if not track_uris:
         flash("Nessun brano selezionato", "warning")
-        return redirect(url_for('home.get_recommendations'))
+        return redirect(url_for('home.search_playlist'))
     
     try:
-        # Crea una nuova playlist se non è stata specificata un'ID esistente
-        if playlist_id == 'new':
-            user_id = sp.current_user()['id']
-            new_playlist = sp.user_playlist_create(
-                user=user_id,
-                name=playlist_name,
-                description="Playlist generata automaticamente da Spotify Progetto"
-            )
-            playlist_id = new_playlist['id']
+        # Crea una nuova playlist
+        user_id = sp.current_user()['id']
+        playlist_name = "Raccomandazioni da ricerca - " + datetime.now().strftime("%d/%m/%Y")
+        new_playlist = sp.user_playlist_create(
+            user=user_id,
+            name=playlist_name,
+            public=True,
+            description="Brani raccomandati basati sulla tua ricerca"
+        )
         
-        # Aggiungi i brani alla playlist
-        sp.playlist_add_items(playlist_id, track_uris)
+        # Aggiungi i brani
+        sp.playlist_add_items(new_playlist['id'], track_uris)
         
-        # Se l'utente è loggato nel nostro sistema, salviamo anche nel DB
-        if current_user.is_authenticated:
-            try:
-                conn = get_db()
-                with conn.cursor() as cursor:
-                    cursor.execute('''
-                        INSERT INTO saved_playlists (user_id, playlist_id, playlist_name)
-                        VALUES (%s, %s, %s)
-                        ON DUPLICATE KEY UPDATE playlist_name = VALUES(playlist_name)
-                    ''', (current_user.id, playlist_id, playlist_name))
-                    conn.commit()
-                conn.close()
-            except Exception as e:
-                print(f"Errore nel salvataggio nel DB: {e}")
-        
-        flash("Brani aggiunti con successo alla playlist!", "success")
-        return redirect(url_for('home.view_saved_playlists'))
+        flash(f"{len(track_uris)} brani salvati in una nuova playlist!", "success")
+        return redirect(url_for('home.view_playlist', playlist_id=new_playlist['id']))
     
     except Exception as e:
-        flash(f"Errore nel salvataggio della playlist: {str(e)}", "danger")
-        return redirect(url_for('home.get_recommendations'))
+        flash(f"Errore nel salvataggio: {str(e)}", "danger")
+        return redirect(url_for('home.search_playlist'))
 
 @home_bp.route('/share_playlist/<playlist_id>')
 def share_playlist(playlist_id):
@@ -374,9 +401,193 @@ def playlist_analysis(playlist_id):
     tracks_data = []
 
     try:
+        # Ottieni tutte le tracce della playlist
+        tracks = []
+        results = sp.playlist_tracks(playlist_id)
+        while results:
+            tracks.extend(results.get('items', []))
+            if results.get('next'):
+                results = sp.next(results)
+            else:
+                break
+
+        # Elabora i dati delle tracce
+        for track in tracks:
+            if not track or 'track' not in track or track['track'] is None:
+                continue
+
+            track_info = track['track']
+            artist_info = track_info.get('artists', [{}])[0]
+            artist_id = artist_info.get('id')
+            genre = 'Unknown'
+
+            if artist_id:
+                try:
+                    # Ottieni il primo genere dell'artista
+                    artist_data = sp.artist(artist_id)
+                    genres = artist_data.get('genres', [])
+                    genre = genres[0] if genres else 'Unknown'
+                except Exception as e:
+                    print(f"Errore nel recupero del genere per l'artista {artist_id}: {e}")
+
+            # Crea un dizionario con i dati essenziali
+            track_data = {
+                'track_name': track_info.get('name', 'Sconosciuto'),
+                'artist_name': artist_info.get('name', 'Sconosciuto'),
+                'album_name': track_info.get('album', {}).get('name', 'Sconosciuto'),
+                'genre': genre,
+                'release_year': track_info.get('album', {}).get('release_date', '').split('-')[0] if track_info.get('album', {}).get('release_date') else None,
+                'duration_min': round(track_info.get('duration_ms', 0) / 60000, 2),
+                'popularity': track_info.get('popularity', 0)
+            }
+            tracks_data.append(track_data)
+
+        if not tracks_data:
+            flash("Nessuna traccia trovata nella playlist.", "warning")
+            return redirect(url_for('home.view_saved_playlists'))
+
+        # Crea un DataFrame con i dati
+        df = pd.DataFrame(tracks_data)
+
+        # Ottieni i dati per i grafici
+        top_artists = df['artist_name'].value_counts().head(5)
+        top_albums = df['album_name'].value_counts().head(5)
+        genre_distribution = df['genre'].value_counts()
+        release_counts = df['release_year'].value_counts().sort_index()
+
+        # Crea i grafici con Plotly
+        year_fig = px.bar(x=release_counts.index, y=release_counts.values,
+                         labels={'x': 'Anno di Pubblicazione', 'y': 'Numero di Brani'},
+                         title='Brani Pubblicati per Anno')
+
+        artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values,
+                           labels={'x': 'Artista', 'y': 'Numero di brani'})
+
+        album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values,
+                          labels={'x': 'Album', 'y': 'Numero di brani'})
+
+        genre_fig = px.pie(genre_distribution, names=genre_distribution.index,
+                          values=genre_distribution.values, title='Distribuzione dei generi musicali')
+
+        popularity_fig = px.histogram(df, x='popularity',
+                                     nbins=20,
+                                     title="Distribuzione della Popolarità dei Brani",
+                                     labels={'popularity': 'Popolarità'})
+
+        duration_fig = px.histogram(df, x='duration_min',
+                                   title='Distribuzione della Durata dei Brani nella Playlist')
+
+        return render_template('playlist_analysis.html',
+                             artist_fig=artist_fig.to_html(full_html=False),
+                             album_fig=album_fig.to_html(full_html=False),
+                             genre_fig=genre_fig.to_html(full_html=False),
+                             year_fig=year_fig.to_html(full_html=False),
+                             duration_fig=duration_fig.to_html(full_html=False),
+                             popularity_fig=popularity_fig.to_html(full_html=False))
+
+    except Exception as e:
+        flash(f"Errore durante l'analisi della playlist: {e}", "danger")
+        return redirect(url_for('home.view_saved_playlists'))
+    sp = get_spotify_client()
+    tracks_data = []
+
+    try:
+        # Retrieve all tracks using pagination
+        tracks = []
+        results = sp.playlist_tracks(playlist_id)
+        while results:
+            tracks.extend(results.get('items', []))
+            if results.get('next'):
+                results = sp.next(results)
+            else:
+                break
+
+        # Process tracks efficiently
+        for track in tracks:
+            if not track or 'track' not in track or track['track'] is None:
+                continue
+
+            track_info = track['track']
+            artist_info = track_info.get('artists', [{}])[0]
+            artist_id = artist_info.get('id')
+            genre = 'Unknown'
+
+            if artist_id:
+                try:
+                    # Cache artist data to avoid repeated API calls
+                    if artist_id not in artist_genres:
+                        artist_data = sp.artist(artist_id)
+                        artist_genres[artist_id] = artist_data.get('genres', [])
+                    genre = artist_genres[artist_id][0] if artist_genres[artist_id] else 'Unknown'
+                except Exception as e:
+                    print(f"Error fetching genre for artist {artist_id}: {e}")
+
+            track_data = {
+                'track_name': track_info.get('name', 'Unknown'),
+                'artist_name': artist_info.get('name', 'Unknown'),
+                'album_name': track_info.get('album', {}).get('name', 'Unknown'),
+                'genre': genre,
+                'release_year': track_info.get('album', {}).get('release_date', '').split('-')[0] if track_info.get('album', {}).get('release_date') else None,
+                'duration_min': round(track_info.get('duration_ms', 0) / 60000, 2),
+                'popularity': track_info.get('popularity', 0)
+            }
+            tracks_data.append(track_data)
+
+        if not tracks_data:
+            flash("No tracks found in the playlist.", "warning")
+            return redirect(url_for('home.view_saved_playlists'))
+
+        # Create DataFrame with minimal data
+        df = pd.DataFrame(tracks_data)
+
+        # Calculate top artists, albums, genres, etc., efficiently
+        top_artists = df['artist_name'].value_counts().head(5)
+        top_albums = df['album_name'].value_counts().head(5)
+        genre_distribution = df['genre'].value_counts()
+        release_counts = df['release_year'].value_counts().sort_index()
+
+        # Create visualizations
+        year_fig = px.bar(x=release_counts.index, y=release_counts.values,
+                         labels={'x': 'Release Year', 'y': 'Number of Tracks'},
+                         title='Tracks per Release Year')
+
+        artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values,
+                           labels={'x': 'Artist', 'y': 'Number of Tracks'})
+
+        album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values,
+                          labels={'x': 'Album', 'y': 'Number of Tracks'})
+
+        genre_fig = px.pie(genre_distribution, names=genre_distribution.index,
+                          values=genre_distribution.values, title='Genre Distribution')
+
+        popularity_fig = px.histogram(df, x='popularity',
+                                     nbins=20,
+                                     title="Popularity Distribution",
+                                     labels={'popularity': 'Popularity Score'})
+
+        duration_fig = px.histogram(df, x='duration_min',
+                                   title='Track Duration Distribution')
+
+        return render_template('playlist_analysis.html',
+                             artist_fig=artist_fig.to_html(full_html=False),
+                             album_fig=album_fig.to_html(full_html=False),
+                             genre_fig=genre_fig.to_html(full_html=False),
+                             year_fig=year_fig.to_html(full_html=False),
+                             duration_fig=duration_fig.to_html(full_html=False),
+                             popularity_fig=popularity_fig.to_html(full_html=False))
+
+    except Exception as e:
+        flash(f"Error during playlist analysis: {e}", "danger")
+        return redirect(url_for('home.view_saved_playlists'))
+    sp = get_spotify_client()
+    tracks_data = []
+
+    try:
+        # Ottieni le tracce della playlist
         tracks_response = sp.playlist_tracks(playlist_id)
         tracks = tracks_response.get('items', []) if tracks_response else []
 
+        # Elabora i dati delle tracce in modo più efficiente
         for track in tracks:
             if not track or 'track' not in track or track['track'] is None:
                 continue
@@ -394,88 +605,63 @@ def playlist_analysis(playlist_id):
                 except Exception as e:
                     print(f"Errore nel recupero genere artista {artist_id}: {e}")
 
-            release_date = track_info.get('album', {}).get('release_date')
-            year = None
-            if release_date:
-                year = release_date.split('-')[0]
-
-            duration_ms = track_info.get('duration_ms', 0)
-            duration_min = round(duration_ms / 60000, 2)
-
-            popularity = track_info.get('popularity', 0)
-
             track_data = {
                 'track_name': track_info.get('name', 'Sconosciuto'),
                 'artist_name': artist_info.get('name', 'Sconosciuto'),
                 'album_name': track_info.get('album', {}).get('name', 'Sconosciuto'),
                 'genre': genre,
-                'release_year': year,
-                'duration_min': duration_min,
-                'popularity': popularity
+                'release_year': track_info.get('album', {}).get('release_date', '').split('-')[0] if track_info.get('album', {}).get('release_date') else None,
+                'duration_min': round(track_info.get('duration_ms', 0) / 60000, 2),
+                'popularity': track_info.get('popularity', 0)
             }
             tracks_data.append(track_data)
+
+        if not tracks_data:
+            flash("Nessuna traccia trovata nella playlist.", "warning")
+            return redirect(url_for('home.view_saved_playlists'))
+
+        # Crea un DataFrame con i dati essenziali
+        df = pd.DataFrame(tracks_data)
+
+        # Ottieni i dati per i grafici in modo efficiente
+        top_artists = df['artist_name'].value_counts().head(5)
+        top_albums = df['album_name'].value_counts().head(5)
+        genre_distribution = df['genre'].value_counts()
+        release_counts = df['release_year'].value_counts().sort_index()
+
+        # Crea i grafici con Plotly
+        year_fig = px.bar(x=release_counts.index, y=release_counts.values,
+                         labels={'x': 'Anno di Pubblicazione', 'y': 'Numero di Brani'},
+                         title='Brani Pubblicati per Anno')
+
+        artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values,
+                           labels={'x': 'Artista', 'y': 'Numero di brani'})
+
+        album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values,
+                          labels={'x': 'Album', 'y': 'Numero di brani'})
+
+        genre_fig = px.pie(genre_distribution, names=genre_distribution.index,
+                          values=genre_distribution.values, title='Distribuzione dei generi musicali')
+
+        popularity_fig = px.histogram(df, x='popularity',
+                                     nbins=20,
+                                     title="Distribuzione della Popolarità dei Brani",
+                                     labels={'popularity': 'Popolarità'})
+
+        duration_fig = px.histogram(df, x='duration_min',
+                                   title='Distribuzione della Durata dei Brani nella Playlist')
+
+        return render_template('playlist_analysis.html',
+                             artist_fig=artist_fig.to_html(full_html=False),
+                             album_fig=album_fig.to_html(full_html=False),
+                             genre_fig=genre_fig.to_html(full_html=False),
+                             year_fig=year_fig.to_html(full_html=False),
+                             duration_fig=duration_fig.to_html(full_html=False),
+                             popularity_fig=popularity_fig.to_html(full_html=False))
+
     except Exception as e:
         flash(f"Errore durante l'analisi della playlist: {e}", "danger")
         return redirect(url_for('home.view_saved_playlists'))
-
-    if not tracks_data:
-        flash("Nessuna traccia trovata nella playlist.", "warning")
-        return redirect(url_for('home.view_saved_playlists'))
-
-    df = pd.DataFrame(tracks_data)
-
-    top_artists = df['artist_name'].value_counts().head(5)
-    top_albums = df['album_name'].value_counts().head(5)
-    genre_distribution = df['genre'].value_counts()
-    release_counts = df['release_year'].value_counts().sort_index()
-
-    year_fig = px.bar(x=release_counts.index, y=release_counts.values,
-                      labels={'x': 'Anno di Pubblicazione', 'y': 'Numero di Brani'},
-                      title='Brani Pubblicati per Anno')
-
-    artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values,
-                        labels={'x': 'Artista', 'y': 'Numero di brani'})
-    album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values,
-                       labels={'x': 'Album', 'y': 'Numero di brani'})
-    genre_fig = px.pie(genre_distribution, names=genre_distribution.index,
-                       values=genre_distribution.values, title='Distribuzione dei generi musicali')
-
-    # Grafico della popolarità (normale)
-    popularity_fig = px.histogram(df, 
-                               x='popularity', 
-                               nbins=20,  # Aumenta il numero di bin per una visualizzazione più dettagliata
-                               title="Distribuzione della Popolarità dei Brani",
-                               labels={'popularity': 'Popolarità'},
-                               color_discrete_sequence=['mediumseagreen'])
-
-    popularity_fig.update_xaxes(range=[0, 100], tick0=0, dtick=5)  # Intervallo da 0 a 100 con un passo di 5
-    popularity_fig.update_layout(bargap=0.2)  # Riduce lo spazio tra le barre per una visualizzazione migliore
-
-    # Grafico della popolarità nel tempo (media per anno)
-    popularity_fig_time = px.bar(df.groupby('release_year')['popularity'].mean().reset_index(), 
-                                  x='release_year', y='popularity', 
-                                  labels={'release_year': 'Anno di Pubblicazione', 'popularity': 'Popolarità Media'},
-                                  title='Evoluzione della Popolarità nel Tempo')
-
-    # Grafico della durata dei brani
-    bins = [round(x * 0.25, 2) for x in range(0, 41)]  # 0 to 10 minutes in 15 sec steps
-    duration_fig = px.histogram(df, x='duration_min',
-                                category_orders={"duration_min": bins},
-                                labels={'duration_min': 'Durata (minuti)'},
-                                title='Distribuzione della Durata dei Brani nella Playlist',
-                                color_discrete_sequence=['#00BFFF'])
-    duration_fig.update_xaxes(dtick=0.5)  # visualizza un tick ogni 30 sec
-    duration_fig.update_layout(bargap=0.2)
-
-    return render_template('playlist_analysis.html',
-                           artist_fig=artist_fig.to_html(full_html=False),
-                           album_fig=album_fig.to_html(full_html=False),
-                           genre_fig=genre_fig.to_html(full_html=False),
-                           year_fig=year_fig.to_html(full_html=False),
-                           duration_fig=duration_fig.to_html(full_html=False),
-                           popularity_fig=popularity_fig.to_html(full_html=False),
-                           popularity_fig_time=popularity_fig_time.to_html(full_html=False))
-
 
 
 @home_bp.route('/spotify_playlists')
@@ -497,23 +683,75 @@ def view_spotify_playlists():
 
 @home_bp.route('/search_playlist', methods=['POST', 'GET'])
 def search_playlist():
-    """Effettua la ricerca di playlist su Spotify, sia per utenti loggati che non loggati."""
+    """Effettua la ricerca di playlist su Spotify e mostra raccomandazioni correlate"""
     sp = get_spotify_client()
     search_results = []
-
+    recommendations = []
+    
     if request.method == 'POST':
         query = request.form.get('search_query')
         if query:
             try:
-                print(f"Eseguendo la ricerca per: {query}")
+                # Ricerca playlist
                 search_results = sp.search(q=query, type='playlist', limit=10)['playlists']['items']
+                
+                # Filtra le playlist con zero canzoni e None
+                search_results = [
+                    p for p in search_results 
+                    if p is not None and 'tracks' in p and p['tracks'] is not None and 'total' in p['tracks'] and p['tracks']['total'] > 0
+                ]
+                
+                # Se ci sono risultati di ricerca, ottieni tracce e artisti per le raccomandazioni
+                if search_results:
+                    # Questo codice ottiene tracce da tutte le playlist trovate
+                    seed_tracks = []
+                    seed_artists = []
+                    for playlist in search_results:
+                        # Ottieni le prime 3 tracce di ogni playlist
+                        tracks = sp.playlist_tracks(playlist['id'], limit=3)['items']
+                        for track in tracks:
+                            if track and 'track' in track:
+                                track_id = track['track']['id']
+                                if track_id not in seed_tracks:
+                                    seed_tracks.append(track_id)
+                                    if len(seed_tracks) >= 5:  # Limite di Spotify per seed_tracks
+                                        break
+                                
+                                # Aggiungi anche gli artisti delle tracce
+                                for artist in track['track']['artists']:
+                                    artist_id = artist['id']
+                                    if artist_id not in seed_artists:
+                                        seed_artists.append(artist_id)
+                                        if len(seed_artists) >= 5:
+                                            break
+                        if len(seed_tracks) >= 5 or len(seed_artists) >= 5:
+                            break
+                    
+                    # Ottieni raccomandazioni basate sui seed
+                    if seed_tracks or seed_artists:
+                        recommendations_response = sp.recommendations(
+                            seed_tracks=seed_tracks[:5],
+                            seed_artists=seed_artists[:5],
+                            limit=20
+                        )
+                        recommendations = recommendations_response.get('tracks', [])
+                    else:
+                        # Se non ci sono abbastanza tracce/artisti, usa la query di ricerca come base
+                        recommendations_response = sp.recommendations(
+                            query=query,
+                            limit=20
+                        )
+                        recommendations = recommendations_response.get('tracks', [])
+                
             except Exception as e:
-                print("Errore nella ricerca delle playlist:", e)
+                print("Errore nella ricerca:", e)
+                flash(f"Errore nella ricerca: {str(e)}", "danger")
     
-    return render_template('home.html', search_results=search_results, user_info=session.get('user_info'), playlists=session.get('playlists', []))
-
-
-
+    return render_template('home.html', 
+                         search_results=search_results,
+                         recommendations=recommendations,
+                         user_info=session.get('user_info'), 
+                         playlists=session.get('playlists', []))
 
 @home_bp.route('/playlist_tracks/<playlist_id>')
 def playlist_tracks(playlist_id):
