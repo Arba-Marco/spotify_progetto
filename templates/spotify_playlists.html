@@ -4,32 +4,137 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Le mie Playlist su Spotify</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(to right, #006400, #000000);
+            font-family: 'Arial', sans-serif;
+            color: #000;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .list-group-item {
+            background-color: rgba(0, 100, 0, 0.1);
+            margin-bottom: 10px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-group-item strong {
+            font-size: 1.2em;
+            color: #004d00;
+        }
+
+        .btn {
+            border-radius: 50px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background-color: #006400;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #004d00;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        p {
+            font-size: 1.2em;
+            color: #555;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .list-group-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .list-group-item a {
+                margin-top: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Le mie Playlist su Spotify</h1>
 
-        {% if playlists %}
-            <ul class="list-group">
-                {% for playlist in playlists %}
-                    <li class="list-group-item">
-                        <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
-                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Non hai playlist su Spotify.</p>
-        {% endif %}
+<div class="container">
+    <h1>Le mie Playlist su Spotify</h1>
 
-        {% if user_info %}
-            <!-- Il bottone di analisi viene mostrato solo se l'utente è autenticato su Spotify -->
-            <a href="{{ url_for('home.playlist_analysis') }}" class="btn btn-success">Analizza le tue Playlist</a>
-        {% endif %}
+    {% if playlists %}
+        <ul class="list-group mb-4">
+            {% for playlist in playlists %}
+                <li class="list-group-item">
+                    <div>
+                        <strong>{{ playlist['name'] }}</strong> <br>
+                        <small>{{ playlist['tracks']['total'] }} brani</small>
+                    </div>
+                    <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Non hai ancora creato playlist su Spotify.</p>
+    {% endif %}
 
-        <br>
-        <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
-    </div>
+    {% if user_info %}
+        <a href="{{ url_for('home.playlist_analysis') }}" class="btn btn-success mb-3">Analizza le tue Playlist</a>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
+</div>
+
 </body>
 </html>

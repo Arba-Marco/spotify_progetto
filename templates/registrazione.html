@@ -4,48 +4,52 @@
     <meta charset="UTF-8">
     <title>Registrazione</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
     <style>
         body {
-            background: linear-gradient(to right, #006400, #000000);
-            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #004d00, #000000);
+            font-family: 'Segoe UI', sans-serif;
             color: #fff;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             margin: 0;
+            padding: 2rem;
         }
 
         .register-container {
-            background-color: rgba(255, 255, 255, 0.95);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            background-color: #ffffff;
             color: #333;
-            max-width: 400px;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
             width: 100%;
+            max-width: 420px;
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 1.5rem;
             border-bottom: 1px solid #ccc;
-            margin-bottom: 20px;
         }
 
         .modal-header h2 {
-            font-size: 1.8rem;
             font-weight: bold;
-            margin: 0;
+            font-size: 1.8rem;
         }
 
         .close {
-            font-size: 1.5rem;
-            color: #ff0000;
+            font-size: 1.8rem;
+            color: #dc3545;
             cursor: pointer;
+            border: none;
+            background: none;
         }
 
         .close:hover {
@@ -55,66 +59,67 @@
         .form-control {
             border-radius: 25px;
             padding: 12px;
-            font-size: 1em;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            margin-top: 5px;
+            font-size: 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
         .btn-primary {
-            background-color: #006400;
+            background-color: #007a33;
             border: none;
-            border-radius: 25px;
-            padding: 12px 25px;
-            font-size: 1.1em;
-            width: 100%;
+            border-radius: 30px;
+            padding: 0.8rem;
+            font-size: 1.1rem;
+            margin-top: 1rem;
             transition: background-color 0.3s ease;
+            width: 100%;
         }
 
         .btn-primary:hover {
-            background-color: #004d00;
+            background-color: #005924;
         }
 
         a {
-            color: #006400;
-            font-weight: bold;
+            color: #007a33;
+            text-decoration: none;
+            font-weight: 600;
         }
 
         a:hover {
-            color: #004d00;
+            color: #005924;
         }
 
         .alert {
-            border-radius: 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
         }
 
-        .password-hint {
-            font-size: 0.8rem;
-            color: #6c757d;
-            margin-top: 5px;
+        .password-hint, .password-requirements {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
         }
 
         .password-requirements {
             display: none;
-            background: #f8f9fa;
+            background-color: #f1f1f1;
+            border-radius: 10px;
             padding: 10px;
-            border-radius: 5px;
-            margin-top: 5px;
-            font-size: 0.8rem;
+            margin-top: 10px;
         }
 
         .requirement {
             display: flex;
             align-items: center;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
         }
 
         .requirement i {
-            margin-right: 5px;
-            font-size: 0.7rem;
+            margin-right: 8px;
         }
 
         @media (max-width: 480px) {
             .register-container {
-                padding: 25px;
+                padding: 2rem;
             }
         }
     </style>
@@ -123,53 +128,53 @@
     <div class="register-container">
         <div class="modal-header">
             <h2>Registrazione</h2>
-            <span class="close" onclick="closeModal()">×</span>
+            <button class="close" onclick="closeModal()">×</button>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="alert alert-{{ messages[0][0] }} mt-3">
+            <div class="alert alert-{{ messages[0][0] }} mt-2">
                 {% for category, message in messages %}
-                    <p>{{ message }}</p>
+                    <p class="mb-0">{{ message }}</p>
                 {% endfor %}
             </div>
         {% endif %}
         {% endwith %}
 
         <form method="POST" id="registerForm">
-            <div class="form-group">
-                <label for="username">Username:</label>
+            <div class="form-group mb-3">
+                <label for="username">Username</label>
                 <input type="text" name="username" class="form-control" required>
             </div>
-            
-            <div class="form-group">
-                <label for="email">Email:</label>
+
+            <div class="form-group mb-3">
+                <label for="email">Email</label>
                 <input type="email" name="email" class="form-control" required>
             </div>
-            
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" name="password" id="password" class="form-control" required 
+
+            <div class="form-group mb-3">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" class="form-control" required
                        onfocus="showPasswordRequirements()" onblur="hidePasswordRequirements()">
-                <div class="password-hint">(Minimo 8 caratteri, maiuscole, minuscole, numeri e caratteri speciali)</div>
+                <div class="password-hint">Minimo 8 caratteri, maiuscole, minuscole, numeri e simboli</div>
                 <div class="password-requirements" id="passwordRequirements">
-                    <div class="requirement"><i class="fas fa-check" id="length-check"></i> 8+ caratteri</div>
-                    <div class="requirement"><i class="fas fa-check" id="uppercase-check"></i> Lettera maiuscola</div>
-                    <div class="requirement"><i class="fas fa-check" id="lowercase-check"></i> Lettera minuscola</div>
-                    <div class="requirement"><i class="fas fa-check" id="number-check"></i> Numero</div>
-                    <div class="requirement"><i class="fas fa-check" id="special-check"></i> Carattere speciale</div>
+                    <div class="requirement"><i class="fas fa-times text-danger" id="length-check"></i> Minimo 8 caratteri</div>
+                    <div class="requirement"><i class="fas fa-times text-danger" id="uppercase-check"></i> Una maiuscola</div>
+                    <div class="requirement"><i class="fas fa-times text-danger" id="lowercase-check"></i> Una minuscola</div>
+                    <div class="requirement"><i class="fas fa-times text-danger" id="number-check"></i> Un numero</div>
+                    <div class="requirement"><i class="fas fa-times text-danger" id="special-check"></i> Un simbolo</div>
                 </div>
             </div>
-            
-            <div class="form-group">
-                <label for="password_confirm">Conferma Password:</label>
+
+            <div class="form-group mb-3">
+                <label for="password_confirm">Conferma Password</label>
                 <input type="password" name="password_confirm" class="form-control" required>
             </div>
-            
+
             <button type="submit" class="btn btn-primary">Registrati</button>
         </form>
 
-        <p class="mt-3 text-center">
+        <p class="text-center mt-4">
             Hai già un account? <a href="{{ url_for('login_bp.login') }}">Accedi</a>
         </p>
     </div>
@@ -190,26 +195,11 @@
 
         function validatePassword() {
             const password = this.value;
-            
-            // Controllo lunghezza
-            document.getElementById('length-check').className = 
-                password.length >= 8 ? 'fas fa-check text-success' : 'fas fa-times text-danger';
-            
-            // Controllo maiuscole
-            document.getElementById('uppercase-check').className = 
-                /[A-Z]/.test(password) ? 'fas fa-check text-success' : 'fas fa-times text-danger';
-            
-            // Controllo minuscole
-            document.getElementById('lowercase-check').className = 
-                /[a-z]/.test(password) ? 'fas fa-check text-success' : 'fas fa-times text-danger';
-            
-            // Controllo numeri
-            document.getElementById('number-check').className = 
-                /[0-9]/.test(password) ? 'fas fa-check text-success' : 'fas fa-times text-danger';
-            
-            // Controllo caratteri speciali
-            document.getElementById('special-check').className = 
-                /[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'fas fa-check text-success' : 'fas fa-times text-danger';
+            document.getElementById('length-check').className = password.length >= 8 ? 'fas fa-check text-success' : 'fas fa-times text-danger';
+            document.getElementById('uppercase-check').className = /[A-Z]/.test(password) ? 'fas fa-check text-success' : 'fas fa-times text-danger';
+            document.getElementById('lowercase-check').className = /[a-z]/.test(password) ? 'fas fa-check text-success' : 'fas fa-times text-danger';
+            document.getElementById('number-check').className = /[0-9]/.test(password) ? 'fas fa-check text-success' : 'fas fa-times text-danger';
+            document.getElementById('special-check').className = /[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'fas fa-check text-success' : 'fas fa-times text-danger';
         }
     </script>
 </body>

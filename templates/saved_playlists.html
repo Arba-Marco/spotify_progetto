@@ -6,11 +6,10 @@
     <title>Playlist Salvate</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
-        /* Background e font di base */
         body {
             background: linear-gradient(to right, #006400, #000000);
             font-family: 'Arial', sans-serif;
-            color: #000; /* Modificato il colore del testo in nero */
+            color: #000;
             overflow-x: hidden;
             display: flex;
             justify-content: center;
@@ -18,20 +17,6 @@
             height: 100vh;
             margin: 0;
         }
-        .playlist-card {
-        background-color: #91c595 ;
-        border: 1px solid #444;
-        transition: background-color 0.3s ease;
-    }
-
-    .playlist-card:hover {
-        background-color: #26833a;
-    }
-
-    .form-check-input {
-        transform: scale(1.3);
-        cursor: pointer;
-    }
         .container {
             max-width: 900px;
             padding: 40px;
@@ -40,83 +25,82 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
-
         .header {
             background-color: #333;
             color: #fff;
             padding: 30px 20px;
-            text-align: center;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 40px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-
         .header h1 {
             font-size: 2.5em;
         }
-
         .alert-container {
             margin-bottom: 20px;
         }
-
-        /* Colori delle alert */
         .alert-success {
             background-color: #28a745;
-            color: #000; /* Testo nero nelle alert */
+            color: #000;
         }
-
         .alert-danger {
             background-color: #dc3545;
-            color: #000; /* Testo nero nelle alert */
+            color: #000;
         }
-
         .alert-warning {
             background-color: #ffc107;
             color: #333;
         }
-
+        .playlist-card {
+            background-color: #91c595;
+            border: 1px solid #444;
+            transition: background-color 0.3s ease;
+        }
+        .playlist-card:hover {
+            background-color: #26833a;
+        }
+        .form-check-input {
+            transform: scale(1.3);
+            cursor: pointer;
+        }
         .list-group-item {
             background-color: rgba(248, 249, 250, 0.9);
             border-radius: 10px;
             margin-bottom: 15px;
             padding: 15px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            color: #000; /* Testo nero per la lista delle playlist */
+            color: #000;
         }
-
         .list-group-item:hover {
             background-color: rgba(233, 236, 239, 0.9);
         }
-
         .btn-primary {
             background-color: #006400;
             color: #fff;
             border-radius: 50px;
             padding: 8px 20px;
-            text-decoration: none;
-            font-size: 1em;
             margin-top: 10px;
+            font-size: 1em;
         }
-
         .btn-primary:hover {
             background-color: #004d00;
         }
-
         .btn-secondary {
             background-color: #6c757d;
             color: #fff;
             border-radius: 50px;
             padding: 8px 20px;
-            text-decoration: none;
-            font-size: 1em;
             margin-top: 10px;
+            font-size: 1em;
         }
-
         .btn-secondary:hover {
             background-color: #5a6268;
         }
-
-        /* Pulsante torni alla home */
+        .btn-success {
+            border-radius: 50px;
+            font-weight: bold;
+            padding: 8px 20px;
+        }
         .btn-back {
             background-color: #17a2b8;
             color: #fff;
@@ -124,27 +108,20 @@
             padding: 8px 20px;
             margin-top: 20px;
         }
-
         .btn-back:hover {
             background-color: #138496;
         }
-
-        /* Modifica i testi dei pulsanti per renderli più visibili */
         .btn {
             text-transform: uppercase;
             font-weight: bold;
         }
-
-        /* Styling responsivo per dispositivi mobili */
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
             }
-
             .header h1 {
                 font-size: 2em;
             }
-
             .list-group-item {
                 padding: 10px;
             }
@@ -161,7 +138,6 @@
             {% if messages %}
                 <div class="alert-container">
                     {% for category, message in messages %}
-                        <!-- Mostra i messaggi di feedback (successo, errore, ecc.) -->
                         <div class="alert alert-{{ category }}">{{ message }}</div>
                     {% endfor %}
                 </div>
@@ -182,29 +158,24 @@
             </div>
             <button type="submit" class="btn btn-success px-4 py-2 rounded-pill">Confronta Playlist</button>
         </form>
-        
+
         {% if playlists %}
-            <!-- Lista delle playlist salvate -->
             <ul class="list-group mt-4">
                 {% for playlist in playlists %}
-                <li class="list-group-item">
-                    <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
-                    <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
-                    <a href="{{ url_for('home.playlist_analysis', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Analisi</a>
-                    <a href="{{ url_for('home.share_playlist', playlist_id=playlist['id']) }}" class="btn btn-outline-info btn-sm">Condividi</a>
-                </li>
-            {% endfor %}
+                    <li class="list-group-item">
+                        <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
+                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
+                        <a href="{{ url_for('home.playlist_analysis', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Analisi</a>
+                        <a href="{{ url_for('home.share_playlist', playlist_id=playlist['id']) }}" class="btn btn-outline-info btn-sm">Condividi</a>
+                    </li>
+                {% endfor %}
             </ul>
         {% else %}
-            <!-- Messaggio quando non ci sono playlist salvate -->
             <p class="text-danger">Nessuna playlist salvata.</p>
         {% endif %}
 
         <br>
-        <!-- Link per tornare alla home page -->
         <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
-
-        <!-- Alternativa: pulsante per tornare indietro -->
     </div>
 </body>
 </html>

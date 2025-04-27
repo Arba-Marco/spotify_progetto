@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analisi Playlist</title>
     
     <!-- Bootstrap CSS -->
@@ -15,65 +15,68 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(to right, #006400, #000000); /* Green to black gradient */
-            color: #000; /* Text color set to black */
+            background: linear-gradient(to right, #006400, #000000);
+            color: #333;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .container {
             max-width: 1200px;
-            padding: 40px;
-            background-color: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            padding: 40px;
             margin-top: 40px;
-            text-align: center;
         }
 
         h1 {
-            color: #343a40;
+            color: #212529;
             font-size: 2.5rem;
             font-weight: bold;
             margin-bottom: 30px;
         }
 
         h3 {
-            color: #28a745; /* Green color for headings */
+            color: #28a745;
             font-size: 1.8rem;
             margin-bottom: 20px;
         }
 
         .graph-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            color: #000; /* Text color inside the graphs */
+            margin-bottom: 30px;
+            text-align: center;
         }
 
         .graph-container p {
-            font-size: 1rem;
             color: #6c757d;
+            font-size: 1rem;
+            margin-top: -10px;
+            margin-bottom: 20px;
         }
 
         .btn-custom {
-            background-color: #006400; /* Dark green for buttons */
-            color: white;
+            background-color: #006400;
+            color: #fff;
             border-radius: 30px;
-            padding: 10px 20px;
-            text-transform: uppercase;
+            padding: 12px 30px;
+            font-size: 1.1rem;
             font-weight: bold;
+            text-transform: uppercase;
+            transition: background-color 0.3s ease;
         }
 
         .btn-custom:hover {
-            background-color: #004d00; /* Slightly darker green on hover */
-            color: white;
-        }
-
-        .text-muted {
-            color: #6c757d;
+            background-color: #004d00;
+            color: #fff;
         }
 
         .alert-container {
@@ -81,17 +84,18 @@
         }
 
         .alert {
+            border-radius: 10px;
+            font-size: 1rem;
             color: #000;
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-
             .container {
                 padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
             }
 
             .graph-container {
@@ -100,65 +104,64 @@
         }
     </style>
 </head>
+
 <body>
+    <div class="container my-5">
+        <!-- Titolo Principale -->
+        <h1>Analisi della Playlist</h1>
+        
+        <!-- Grafico: Distribuzione Artisti -->
+        <div class="graph-container">
+            <h3>Distribuzione degli Artisti</h3>
+            <div>{{ artist_fig|safe }}</div>
+        </div>
 
-<div class="container my-5">
-    <!-- Header -->
-    <h1>Analisi della Playlist</h1>
-    
-    <!-- Grafico degli Artisti -->
-    <div class="graph-container">
-        <h3>Distribuzione degli Artisti</h3>
-        <div>{{ artist_fig|safe }}</div>
+        <!-- Grafico: Distribuzione Album -->
+        <div class="graph-container">
+            <h3>Distribuzione degli Album</h3>
+            <div>{{ album_fig|safe }}</div>
+        </div>
+
+        <!-- Grafico: Distribuzione Generi -->
+        <div class="graph-container">
+            <h3>Distribuzione dei Generi</h3>
+            <div>{{ genre_fig|safe }}</div>
+        </div>
+
+        <!-- Grafico: Anni di Pubblicazione -->
+        <div class="graph-container">
+            <h3>Brani Pubblicati per Anno</h3>
+            <div>{{ year_fig|safe }}</div>
+        </div>
+
+        <!-- Grafico: Evoluzione Popolarità -->
+        <div class="graph-container">
+            <h3>Evoluzione della Popolarità</h3>
+            <p>Popolarità media per anno di pubblicazione</p>
+            <div>{{ popularity_fig_time|safe }}</div>
+        </div>
+
+        <!-- Grafico: Durata dei Brani -->
+        <div class="graph-container">
+            <h3>Distribuzione Durata Brani (0-10 minuti)</h3>
+            <div>{{ duration_fig|safe }}</div>
+        </div>
+
+        <!-- Grafico: Popolarità dei Brani -->
+        <div class="graph-container">
+            <h3>Distribuzione della Popolarità</h3>
+            <div>{{ popularity_fig|safe }}</div>
+        </div>
+
+        <!-- Bottone per tornare -->
+        <div class="text-center">
+            <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-custom mt-4">Torna alle Playlist Salvate</a>
+        </div>
     </div>
 
-    <!-- Grafico degli Album -->
-    <div class="graph-container">
-        <h3>Distribuzione degli Album</h3>
-        <div>{{ album_fig|safe }}</div>
-    </div>
-
-    <!-- Grafico dei Generi -->
-    <div class="graph-container">
-        <h3>Distribuzione dei Generi</h3>
-        <div>{{ genre_fig|safe }}</div>
-    </div>
-
-    <!-- Grafico Anni di Pubblicazione -->
-    <div class="graph-container">
-        <h3>Brani Pubblicati per Anno</h3>
-        <div>{{ year_fig|safe }}</div>
-    </div>
-
-    <!-- Grafico Popolarità nel Tempo -->
-    <div class="graph-container">
-        <h3>Evoluzione della Popolarità nel Tempo</h3>
-        <p class="text-muted">Popolarità media per anno di pubblicazione</p>
-        <div>{{ popularity_fig_time|safe }}</div>
-    </div>
-
-    <!-- Grafico della Durata dei Brani -->
-    <div class="graph-container">
-        <h3>Distribuzione della Durata dei Brani (0-10 minuti)</h3>
-        <div>{{ duration_fig|safe }}</div>
-    </div>
-
-    <!-- Grafico Popolarità dei Brani -->
-    <div class="graph-container">
-        <h3>Distribuzione della Popolarità dei Brani</h3>
-        <div>{{ popularity_fig|safe }}</div>
-    </div>
-
-    <!-- Bottone per Tornare alla Lista di Playlist -->
-    <div class="text-center">
-        <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-custom mt-4">Torna alle Playlist Salvate</a>
-    </div>
-</div>
-
-<!-- Bootstrap JS e jQuery -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
+    <!-- Bootstrap JS + jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

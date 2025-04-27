@@ -4,103 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brani della Playlist</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <style>
         body {
             background: linear-gradient(to right, #4d8064, #18382c);
-            color: #fff;
+            color: #f8f9fa;
             font-family: 'Segoe UI', sans-serif;
+            margin: 0;
             padding: 2rem 1rem;
         }
 
         .container {
             max-width: 1100px;
             margin: auto;
+            padding: 2rem;
         }
 
-        h1 {
+        header h1 {
             text-align: center;
-            margin-bottom: 3rem;
             font-size: 2.8rem;
-            text-shadow: 1px 1px 3px #000;
+            margin-bottom: 2.5rem;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.7);
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
-            background-color: #2a2f3d;
-            border-radius: 15px;
+            border-collapse: separate;
+            border-spacing: 0;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            background: #2a2f3d;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
         }
 
         thead {
-            background-color: #444;
+            background-color: #3a3f5a;
         }
 
         th, td {
-            padding: 1rem 1.5rem;
+            padding: 1rem;
             text-align: left;
+            vertical-align: middle;
         }
 
         th {
             color: #b9ffcc;
-            font-weight: 600;
+            text-transform: uppercase;
             letter-spacing: 1px;
+            font-weight: 600;
         }
 
         tbody tr:nth-child(even) {
-            background-color: #333;
+            background-color: #343a40;
         }
 
         tbody tr:hover {
-            background-color: #505050;
-            transform: scale(1.02);
-            transition: background-color 0.3s, transform 0.2s ease-in-out;
+            background-color: #495057;
+            transition: background-color 0.3s ease;
         }
 
         .cover {
             width: 60px;
             height: 60px;
             object-fit: cover;
-            border-radius: 12px;
-            transition: transform 0.3s ease;
+            border-radius: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .cover:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
-        .btn {
+        .btn-custom {
             background-color: #00a65a;
-            color: white;
-            padding: 0.8rem 1.4rem;
-            border-radius: 35px;
+            color: #fff;
+            padding: 0.8rem 1.5rem;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
             display: inline-block;
             margin-top: 2.5rem;
             text-decoration: none;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
-        .btn:hover {
+        .btn-custom:hover {
             background-color: #008f4c;
             transform: scale(1.05);
+            color: #fff;
         }
 
-        p {
+        footer {
             text-align: center;
+            margin-top: 2rem;
         }
 
         @media (max-width: 768px) {
             th, td {
                 font-size: 0.9rem;
-                padding: 0.8rem;
+                padding: 0.7rem;
             }
 
             .cover {
@@ -108,50 +119,60 @@
                 height: 50px;
             }
 
-            h1 {
+            header h1 {
                 font-size: 2.2rem;
             }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Brani della Playlist</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Copertina</th>
-                    <th>Nome Brano</th>
-                    <th>Artista</th>
-                    <th>Album</th>
-                    <th>Durata</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for track in tracks %}
-                <tr>
-                    <td>
-                        {% if track['track']['album']['images'] %}
-                            <img src="{{ track['track']['album']['images'][0]['url'] }}" class="cover" alt="Copertina Album">
-                        {% else %}
-                            N/D
-                        {% endif %}
-                    </td>
-                    <td>{{ track['track']['name'] }}</td>
-                    <td>{{ track['track']['artists'][0]['name'] }}</td>
-                    <td>{{ track['track']['album']['name'] }}</td>
-                    <td>
-                        {% set duration = track['track']['duration_ms'] // 1000 %}
-                        {% set minutes = duration // 60 %}
-                        {% set seconds = duration % 60 %}
-                        {{ minutes }}:{{ '%02d' % seconds }}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
 
-        <p><a href="{{ url_for('home.homepage') }}" class="btn">Torna alla Home</a></p>
-    </div>
+<body>
+
+    <main class="container">
+        <header>
+            <h1>Brani della Playlist</h1>
+        </header>
+
+        <section>
+            <table class="table table-borderless">
+                <thead>
+                    <tr>
+                        <th>Copertina</th>
+                        <th>Nome Brano</th>
+                        <th>Artista</th>
+                        <th>Album</th>
+                        <th>Durata</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for track in tracks %}
+                    <tr>
+                        <td>
+                            {% if track['track']['album']['images'] %}
+                                <img src="{{ track['track']['album']['images'][0]['url'] }}" class="cover" alt="Copertina Album">
+                            {% else %}
+                                <span class="text-muted">N/D</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ track['track']['name'] }}</td>
+                        <td>{{ track['track']['artists'][0]['name'] }}</td>
+                        <td>{{ track['track']['album']['name'] }}</td>
+                        <td>
+                            {% set duration = track['track']['duration_ms'] // 1000 %}
+                            {% set minutes = duration // 60 %}
+                            {% set seconds = duration % 60 %}
+                            {{ minutes }}:{{ '%02d' % seconds }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <footer>
+            <a href="{{ url_for('home.homepage') }}" class="btn btn-custom">Torna alla Home</a>
+        </footer>
+    </main>
+
 </body>
 </html>
