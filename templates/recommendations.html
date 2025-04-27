@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Suggerimenti Musicali</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Suggerimenti Musicali</h2>
+
+    <form method="POST" action="{{ url_for('home.save_recommendations') }}">
+        <div class="mb-3">
+            <button type="submit" class="btn btn-success">Salva brani selezionati</button>
+            
+            <div class="form-group mt-3">
+                <label for="playlist_action">Salva in:</label>
+                <select class="form-control" id="playlist_action" name="playlist_id">
+                    <option value="new">Nuova playlist</option>
+                    {% if user_playlists %}
+                        <optgroup label="Playlist esistenti">
+                        {% for p in user_playlists %}
+                            <option value="{{ p.id }}">{{ p.name }}</option>
+                        {% endfor %}
+                        </optgroup>
+                    {% endif %}
+                </select>
+                <input type="text" class="form-control mt-2" name="playlist_name" value="Miei Suggerimenti">
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>Brano</th>
+                    <th>Artista</th>
+                    <th>Album</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for track in tracks %}
+                <tr>
+                    <td><input type="checkbox" name="track_uris" value="{{ track.uri }}"></td>
+                    <td>{{ track.name }}</td>
+                    <td>{{ track.artists[0].name }}</td>
+                    <td>{{ track.album.name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+</div>
+
+<script>
+    document.getElementById('select-all').addEventListener('change', function(e) {
+        document.querySelectorAll('input[name="track_uris"]').forEach(checkbox => {
+            checkbox.checked = e.target.checked;
+        });
+    });
+</script>
+</body>
+</html>

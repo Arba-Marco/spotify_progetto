@@ -182,19 +182,18 @@
             </div>
             <button type="submit" class="btn btn-success px-4 py-2 rounded-pill">Confronta Playlist</button>
         </form>
-        <a href="{{ url_for('home.share_playlist', playlist_id=playlist.id) }}" 
-            class="btn btn-sm btn-outline-info">Condividi</a>
+        
         {% if playlists %}
             <!-- Lista delle playlist salvate -->
             <ul class="list-group mt-4">
                 {% for playlist in playlists %}
-                    <li class="list-group-item">
-                        <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
-                        <!-- Link per visualizzare i brani di una playlist salvata -->
-                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
-                        <a href="{{ url_for('home.playlist_analysis', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Analisi</a>
-                    </li>
-                {% endfor %}
+                <li class="list-group-item">
+                    <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
+                    <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
+                    <a href="{{ url_for('home.playlist_analysis', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Analisi</a>
+                    <a href="{{ url_for('home.share_playlist', playlist_id=playlist['id']) }}" class="btn btn-outline-info btn-sm">Condividi</a>
+                </li>
+            {% endfor %}
             </ul>
         {% else %}
             <!-- Messaggio quando non ci sono playlist salvate -->

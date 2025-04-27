@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ottieni Suggerimenti Musicali</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Ottieni Suggerimenti Musicali</h2>
+    <form method="POST" action="{{ url_for('home.get_recommendations') }}">
+        <div class="form-group">
+            <label for="seed_artists">Artisti (separati da virgola):</label>
+            <input type="text" class="form-control" id="seed_artists" name="seed_artists" placeholder="Es: Coldplay, Daft Punk">
+        </div>
+        <div class="form-group">
+            <label for="seed_tracks">Brani (separati da virgola):</label>
+            <input type="text" class="form-control" id="seed_tracks" name="seed_tracks" placeholder="Es: Yellow, Get Lucky">
+        </div>
+        <div class="form-group">
+            <label for="seed_genres">Generi (separati da virgola):</label>
+            <input type="text" class="form-control" id="seed_genres" name="seed_genres" placeholder="Es: pop, rock, electronic">
+            {% if available_genres %}
+                <small class="form-text text-muted">
+                    Generi disponibili: {{ available_genres|join(', ') }}
+                </small>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Ottieni Suggerimenti</button>
+    </form>
+</div>
+</body>
+</html>

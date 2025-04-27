@@ -299,6 +299,15 @@
         {% if user_info %}
         <a href="{{ url_for('home.view_spotify_playlists') }}" class="btn btn-info">Le mie Playlist su Spotify</a>
         {% endif %}
+
+       <!-- Pulsante per accedere alla pagina delle raccomandazioni -->
+        <a href="{{ url_for('home.get_recommendations') }}" class="btn btn-recommendation">Vai alle Raccomandazioni</a>
+
+        <!-- Pulsante per accedere alla pagina del form di raccomandazioni -->
+        <a href="{{ url_for('home.get_recommendations') }}" class="btn btn-form-recommendation">Compila Form Raccomandazioni</a>
+
+
+
     </div>
 </body>
 </html>

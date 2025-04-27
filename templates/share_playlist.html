@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Condividi Playlist</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4 text-center">
+    <h2>Condividi "{{ playlist_name }}"</h2>
+
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="share-url" value="{{ share_url }}" readonly>
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" onclick="copyToClipboard(event)">Copia Link</button>
+            <a href="{{ share_url }}" class="btn btn-primary" target="_blank">Apri in Spotify</a>
+        </div>
+    </div>
+
+    <div class="social-share mt-3">
+        <a href="https://twitter.com/intent/tweet?url={{ share_url|urlencode }}&text=Ascolta%20la%20mia%20playlist%20{{ playlist_name|urlencode }}%20su%20Spotify" 
+           class="btn btn-info" target="_blank">Condividi su Twitter</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u={{ share_url|urlencode }}" 
+           class="btn btn-primary" target="_blank">Condividi su Facebook</a>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(event) {
+    const copyText = document.getElementById("share-url");
+    copyText.select();
+    document.execCommand("copy");
+
+    const originalText = event.target.textContent;
+    event.target.textContent = "Copiato!";
+    setTimeout(() => {
+        event.target.textContent = originalText;
+    }, 2000);
+}
+</script>
+</body>
+</html>

@@ -18,10 +18,10 @@ SPOTIFY_CLIENT_SECRET = '12ccffe121454ab892ccd7890c4a8db1'
 SPOTIFY_REDIRECT_URI = 'https://5000-arbamarco-spotifyproget-pz7ajcg4azc.ws-eu118.gitpod.io/callback'
 
 sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
-                       client_secret=SPOTIFY_CLIENT_SECRET,
-                       redirect_uri=SPOTIFY_REDIRECT_URI,
-                       scope='user-library-read user-read-private',
-                       show_dialog=True)
+                        client_secret=SPOTIFY_CLIENT_SECRET,
+                        redirect_uri=SPOTIFY_REDIRECT_URI,
+                        scope='user-library-read user-read-private playlist-modify-public playlist-modify-private',
+                        show_dialog=True)
 
 # Client pubblico per utenti non autenticati
 client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET)
@@ -145,7 +145,118 @@ def get_playlist_data(sp, playlist_id):
         return None
 
 
+@home_bp.route('/recommendations', methods=['GET', 'POST'])
+def get_recommendations():
+    """Ottiene suggerimenti musicali basati su input dell'utente"""
+    sp = get_spotify_client()
+    
+    if request.method == 'POST':
+        # Recupera i parametri dal form
+        seed_artists = request.form.get('seed_artists', '').split(',')
+        seed_tracks = request.form.get('seed_tracks', '').split(',')
+        seed_genres = request.form.get('seed_genres', '').split(',')
+        
+        # Filtra i valori vuoti
+        seed_artists = [a.strip() for a in seed_artists if a.strip()]
+        seed_tracks = [t.strip() for t in seed_tracks if t.strip()]
+        seed_genres = [g.strip() for g in seed_genres if g.strip()]
+        
+        try:
+            # Ottieni le raccomandazioni
+            recommendations = sp.recommendations(
+                seed_artists=seed_artists[:5],  # Spotify accetta max 5 seed
+                seed_tracks=seed_tracks[:5],
+                seed_genres=seed_genres[:5],
+                limit=20
+            )
+            
+            # Se l'utente è autenticato, recupera le sue playlist
+            user_playlists = []
+            if 'token_info' in session:
+                user_playlists = sp.current_user_playlists(limit=50)['items']
+            
+            return render_template('recommendations.html', 
+                                tracks=recommendations['tracks'],
+                                user_playlists=user_playlists,
+                                seeds={'artists': seed_artists, 
+                                      'tracks': seed_tracks, 
+                                      'genres': seed_genres})
+            
+        except Exception as e:
+            flash(f"Errore nel recuperare i suggerimenti: {str(e)}", "danger")
+            return redirect(url_for('home.get_recommendations'))
+    
+    # Se è una richiesta GET, mostra il form di ricerca
+    return render_template('recommendations_form.html')
 
+@home_bp.route('/save_recommendations', methods=['POST'])
+def save_recommendations():
+    """Salva i brani consigliati in una playlist"""
+    if 'token_info' not in session:
+        flash("Devi effettuare l'accesso con Spotify per salvare i suggerimenti", "warning")
+        return redirect(url_for('home.get_recommendations'))
+    
+    sp = spotipy.Spotify(auth=session['token_info']['access_token'])
+    track_uris = request.form.getlist('track_uris')
+    playlist_id = request.form.get('playlist_id')
+    playlist_name = request.form.get('playlist_name', 'Suggerimenti Spotify')
+    
+    if not track_uris:
+        flash("Nessun brano selezionato", "warning")
+        return redirect(url_for('home.get_recommendations'))
+    
+    try:
+        # Crea una nuova playlist se non è stata specificata un'ID esistente
+        if playlist_id == 'new':
+            user_id = sp.current_user()['id']
+            new_playlist = sp.user_playlist_create(
+                user=user_id,
+                name=playlist_name,
+                description="Playlist generata automaticamente da Spotify Progetto"
+            )
+            playlist_id = new_playlist['id']
+        
+        # Aggiungi i brani alla playlist
+        sp.playlist_add_items(playlist_id, track_uris)
+        
+        # Se l'utente è loggato nel nostro sistema, salviamo anche nel DB
+        if current_user.is_authenticated:
+            try:
+                conn = get_db()
+                with conn.cursor() as cursor:
+                    cursor.execute('''
+                        INSERT INTO saved_playlists (user_id, playlist_id, playlist_name)
+                        VALUES (%s, %s, %s)
+                        ON DUPLICATE KEY UPDATE playlist_name = VALUES(playlist_name)
+                    ''', (current_user.id, playlist_id, playlist_name))
+                    conn.commit()
+                conn.close()
+            except Exception as e:
+                print(f"Errore nel salvataggio nel DB: {e}")
+        
+        flash("Brani aggiunti con successo alla playlist!", "success")
+        return redirect(url_for('home.view_saved_playlists'))
+    
+    except Exception as e:
+        flash(f"Errore nel salvataggio della playlist: {str(e)}", "danger")
+        return redirect(url_for('home.get_recommendations'))
+
+@home_bp.route('/share_playlist/<playlist_id>')
+def share_playlist(playlist_id):
+    """Genera un link condivisibile per la playlist"""
+    sp = get_spotify_client()
+    
+    try:
+        playlist = sp.playlist(playlist_id)
+        share_url = playlist['external_urls']['spotify']
+        
+        return render_template('share_playlist.html', 
+                            share_url=share_url, 
+                            playlist_name=playlist['name'])
+    
+    except Exception as e:
+        flash(f"Errore nel recuperare il link di condivisione: {str(e)}", "danger")
+        return redirect(url_for('home.view_saved_playlists'))
 
 
 
