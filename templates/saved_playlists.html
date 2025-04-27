@@ -3,127 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playlist Salvate</title>
+    <title>Le tue Playlist Salvate</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(to right, #006400, #000000);
-            font-family: 'Arial', sans-serif;
-            color: #000;
-            overflow-x: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
         }
+
+        body {
+            background-image: linear-gradient(to top, #0a3d13 0%, #000000 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
         .container {
-            max-width: 900px;
-            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
             background-color: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            padding: 2rem;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
         }
+
         .header {
-            background-color: #333;
-            color: #fff;
-            padding: 30px 20px;
-            border-radius: 10px;
-            margin-bottom: 40px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #2d2d2d;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
         }
+
         .header h1 {
-            font-size: 2.5em;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4CAF50;
+            margin-bottom: 1rem;
         }
-        .alert-container {
-            margin-bottom: 20px;
-        }
-        .alert-success {
-            background-color: #28a745;
+
+        .select-playlists-label {
             color: #000;
+            font-weight: 500;
+            margin-bottom: 1rem;
         }
-        .alert-danger {
-            background-color: #dc3545;
-            color: #000;
+
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
-        .alert-warning {
-            background-color: #ffc107;
-            color: #333;
-        }
+
         .playlist-card {
-            background-color: #91c595;
+            background-color: #2d2d2d;
             border: 1px solid #444;
-            transition: background-color 0.3s ease;
+            border-radius: 15px;
+            padding: 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
+
         .playlist-card:hover {
-            background-color: #26833a;
+            background-color: #333;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
         }
+
+        .playlist-info {
+            margin-bottom: 1rem;
+        }
+
+        .playlist-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            border-radius: 30px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #333;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #444;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-success {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #45a049;
+        }
+
+        .btn-back {
+            background-color: #1DB954;
+            color: white;
+        }
+
+        .btn-back:hover {
+            background-color: #1A864E;
+        }
+
         .form-check-input {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
             transform: scale(1.3);
             cursor: pointer;
         }
-        .list-group-item {
-            background-color: rgba(248, 249, 250, 0.9);
-            border-radius: 10px;
-            margin-bottom: 15px;
-            padding: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            color: #000;
-        }
-        .list-group-item:hover {
-            background-color: rgba(233, 236, 239, 0.9);
-        }
-        .btn-primary {
-            background-color: #006400;
-            color: #fff;
-            border-radius: 50px;
-            padding: 8px 20px;
-            margin-top: 10px;
-            font-size: 1em;
-        }
-        .btn-primary:hover {
-            background-color: #004d00;
-        }
-        .btn-secondary {
-            background-color: #6c757d;
-            color: #fff;
-            border-radius: 50px;
-            padding: 8px 20px;
-            margin-top: 10px;
-            font-size: 1em;
-        }
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-        .btn-success {
-            border-radius: 50px;
-            font-weight: bold;
-            padding: 8px 20px;
-        }
-        .btn-back {
-            background-color: #17a2b8;
-            color: #fff;
-            border-radius: 50px;
-            padding: 8px 20px;
-            margin-top: 20px;
-        }
-        .btn-back:hover {
-            background-color: #138496;
-        }
-        .btn {
-            text-transform: uppercase;
-            font-weight: bold;
-        }
+
         @media (max-width: 768px) {
             .container {
-                padding: 20px;
+                padding: 1rem;
             }
+
             .header h1 {
-                font-size: 2em;
+                font-size: 2rem;
             }
-            .list-group-item {
-                padding: 10px;
+
+            .playlist-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .playlist-actions {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+                gap: 0.5rem;
             }
         }
     </style>
@@ -134,48 +175,40 @@
             <h1>Le tue Playlist Salvate</h1>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="alert-container">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
         <form action="{{ url_for('home.compare_playlists') }}" method="POST" class="mt-4">
             <div class="mb-4">
+                <label class="select-playlists-label">Seleziona playlist da confrontare</label>
                 {% for playlist in playlists %}
                     <div class="playlist-card d-flex justify-content-between align-items-center px-3 py-2 mb-2 rounded">
+                        <input type="checkbox" name="playlist_ids" value="{{ playlist['id'] }}" class="form-check-input">
                         <div>
                             <strong>{{ playlist['name'] }}</strong><br>
                             <small class="text-muted">{{ playlist['tracks']['total'] }} brani</small>
                         </div>
-                        <input type="checkbox" name="playlist_ids" value="{{ playlist['id'] }}" class="form-check-input ms-3">
                     </div>
                 {% endfor %}
             </div>
             <button type="submit" class="btn btn-success px-4 py-2 rounded-pill">Confronta Playlist</button>
         </form>
 
-        {% if playlists %}
-            <ul class="list-group mt-4">
-                {% for playlist in playlists %}
-                    <li class="list-group-item">
-                        <strong>{{ playlist['name'] }}</strong> ({{ playlist['tracks']['total'] }} brani)
-                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Visualizza</a>
-                        <a href="{{ url_for('home.playlist_analysis', playlist_id=playlist['id']) }}" class="btn btn-primary btn-sm">Analisi</a>
-                        <a href="{{ url_for('home.share_playlist', playlist_id=playlist['id']) }}" class="btn btn-outline-info btn-sm">Condividi</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-danger">Nessuna playlist salvata.</p>
-        {% endif %}
+        <div class="playlist-grid">
+            {% for playlist in playlists %}
+                <div class="playlist-card">
+                    <div class="playlist-info">
+                        <h4>{{ playlist['name'] }}</h4>
+                        <p class="text-muted">{{ playlist['tracks']['total'] }} brani</p>
+                    </div>
+                    <div class="playlist-actions">
+                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary">Visualizza</a>
+                        <a href="{{ url_for('home.playlist_analysis', playlist_id=playlist['id']) }}" class="btn btn-secondary">Analizza</a>
+                        <a href="{{ url_for('home.share_playlist', playlist_id=playlist['id']) }}" class="btn btn-success">Condividi</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
 
         <br>
-        <a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a>
+        <a href="{{ url_for('home.homepage') }}" class="btn btn-back">Torna alla Home</a>
     </div>
 </body>
 </html>
