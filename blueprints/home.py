@@ -7,8 +7,8 @@ import pandas as pd
 import plotly.express as px
 import pymysql
 import os
-from pymysql.cursors import DictCursor
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 
 home_bp = Blueprint('home', __name__)
 
@@ -88,11 +88,77 @@ def get_db():
         raise e
 
 def get_spotify_client():
-    """Restituisce un client Spotify autenticato oppure un client pubblico se l'utente non è loggato."""
     token_info = session.get('token_info')
     if token_info:
         return spotipy.Spotify(auth=token_info['access_token'])
     return sp_public
+
+def fetch_playlist_data(sp, playlist_id, artist_genres):
+    try:
+        results = sp.playlist_tracks(playlist_id)
+        tracks = results.get('items', [])
+        while results.get('next'):
+            results = sp.next(results)
+            tracks.extend(results.get('items', []))
+
+        playlist_info = sp.playlist(playlist_id)
+        playlist_name = playlist_info.get('name', 'Playlist senza nome')
+
+        track_set = set()
+        artist_set = set()
+        popularity = []
+        genre_count = defaultdict(int)
+        year_count = defaultdict(int)
+
+        for track in tracks:
+            if not track or 'track' not in track or track['track'] is None:
+                continue
+
+            track_info = track['track']
+            track_set.add(track_info.get('name', 'Sconosciuto'))
+            
+            artist_info = track_info.get('artists', [{}])[0]
+            artist_name = artist_info.get('name', 'Sconosciuto')
+            artist_set.add(artist_name)
+
+            popularity.append(track_info.get('popularity', 0))
+
+            artist_id = artist_info.get('id')
+            if artist_id and artist_id not in artist_genres:
+                try:
+                    artist_data = sp.artist(artist_id)
+                    genres = artist_data.get('genres', [])
+                    artist_genres[artist_id] = genres[0] if genres else 'Unknown'
+                except Exception as e:
+                    print(f"Errore nel recupero del genere per l'artista {artist_id}: {e}")
+                    artist_genres[artist_id] = 'Unknown'
+
+            genre = artist_genres.get(artist_id, 'Unknown')
+            genre_count[genre] += 1
+
+            release_year = track_info.get('album', {}).get('release_date', '').split('-')[0] if track_info.get('album', {}).get('release_date') else None
+            if release_year:
+                year_count[release_year] += 1
+
+        return {
+            'playlist': {
+                'name': playlist_name,
+                'tracks': list(track_set),
+                'artists': list(artist_set),
+                'popularity': popularity,
+                'genres': genre_count,
+                'years': year_count
+            },
+            'track_set': track_set,
+            'artist_set': artist_set,
+            'popularity': popularity,
+            'genre_count': genre_count,
+            'year_count': year_count
+        }
+
+    except Exception as e:
+        print(f"Errore nel recupero dati playlist {playlist_id}: {e}")
+        return None
 
 
 def get_playlist_data(sp, playlist_id):
@@ -280,19 +346,15 @@ def homepage():
     return render_template('home.html', user_info=user_info, playlists=playlists, search_results=search_results)
 
 @home_bp.route('/compare_playlists', methods=['POST'])
-@home_bp.route('/compare_playlists', methods=['POST'])
 def compare_playlists():
-    from blueprints.home import get_spotify_client
-    import plotly.graph_objs as go
-    from plotly.offline import plot
-    import collections
-
     selected_ids = request.form.getlist('playlist_ids')
     if len(selected_ids) < 2:
         flash("Seleziona almeno due playlist.")
         return redirect(url_for('home.saved_playlists'))
 
     sp = get_spotify_client()
+    artist_genres = {}
+
     playlists_data = []
     track_sets = []
     artist_sets = []
@@ -300,55 +362,29 @@ def compare_playlists():
     genre_counts = []
     release_years = []
 
-    for playlist_id in selected_ids:
-        tracks = []
-        artists = []
-        popularity = []
-        genres = []
-        years = []
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = []
+        for playlist_id in selected_ids:
+            futures.append(executor.submit(fetch_playlist_data, sp, playlist_id, artist_genres))
+        
+        for future in futures:
+            data = future.result()
+            if data:
+                playlists_data.append(data['playlist'])
+                track_sets.append(data['track_set'])
+                artist_sets.append(data['artist_set'])
+                popularity_lists.append(data['popularity'])
+                genre_counts.append(data['genre_count'])
+                release_years.append(data['year_count'])
 
-        results = sp.playlist_items(playlist_id)
-        items = results['items']
-        while results['next']:
-            results = sp.next(results)
-            items.extend(results['items'])
+    if not playlists_data:
+        flash("Nessun dato disponibile per il confronto.", "warning")
+        return redirect(url_for('home.view_saved_playlists'))
 
-        for item in items:
-            track = item['track']
-            if not track:
-                continue
-            tracks.append(track['name'])
-            popularity.append(track['popularity'])
-            release_year = track['album']['release_date'].split("-")[0]
-            years.append(release_year)
-
-            for artist in track['artists']:
-                artists.append(artist['name'])
-                artist_info = sp.artist(artist['id'])
-                if artist_info.get('genres'):
-                    genres.append(artist_info['genres'][0])  # solo il primo genere
-
-        playlists_data.append({
-            'name': sp.playlist(playlist_id)['name'],
-            'tracks': tracks,
-            'artists': artists,
-            'popularity': popularity,
-            'genres': genres,
-            'years': years
-        })
-
-        track_sets.append(set(tracks))
-        artist_sets.append(set(artists))
-        popularity_lists.append(popularity)
-        genre_counts.append(collections.Counter(genres))
-        release_years.append(collections.Counter(years))
-
-    # Brani in comune
     common_tracks = set.intersection(*track_sets)
     smallest_len = min(len(p['tracks']) for p in playlists_data)
     similarity_percent = round((len(common_tracks) / smallest_len) * 100, 2)
 
-    # Prepara i dati per il template
     playlist_data = {
         'playlists': playlists_data,
         'commonTracks': list(common_tracks),
