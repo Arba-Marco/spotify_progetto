@@ -1,316 +1,277 @@
-<!DOCTYPE html> <html lang="it"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Confronto Playlist</title> <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"> <style> :root { --primary-color: #4FCE43; --secondary-color: #43CE7D; --background-color: #f8f9fa; --text-color: #333; }
-    body {
-        background-color: var(--background-color);
-        color: var(--text-color);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        line-height: 1.6;
-        margin: 0;
-        padding: 1rem;
-    }
-
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    h1 {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: var(--primary-color);
-        text-align: center;
-        margin-bottom: 2rem;
-        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .chart-container {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
-    }
-
-    .chart-container:hover {
-        transform: translateY(-5px);
-    }
-
-    h2 {
-        font-size: 1.5rem;
-        margin-top: 2.5rem;
-        margin-bottom: 1rem;
-        color: var(--secondary-color);
-        border-bottom: 2px solid var(--secondary-color);
-        padding-bottom: 0.5rem;
-    }
-
-    .btn-success {
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 30px;
-        font-size: 1.1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-top: 1rem;
-    }
-
-    .btn-success:hover {
-        background-color: var(--secondary-color);
-        transform: scale(1.05);
-    }
-
-    .plot-container {
-        height: 500px;
-        margin-bottom: 2rem;
-    }
-
-    .loading {
-        display: none;
-        text-align: center;
-        padding: 2rem;
-    }
-
-    .loading i {
-        font-size: 2rem;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 768px) {
-        h1 {
-            font-size: 2rem;
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confronto Playlist</title>
+    <!-- Solo i CSS necessari -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --primary-color: #4FCE43;
+            --secondary-color: #43CE7D;
+            --background-color: #f8f9fa;
+            --text-color: #333;
         }
 
-        h2 {
-            font-size: 1.3rem;
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-container:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .btn-success {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-success:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .plot-container {
+            height: 400px;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            .chart-container {
+                padding: 1rem;
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        /* Tooltip styling */
+        .plotly-tooltip {
+            background: white;
+            border: 1px solid var(--primary-color);
             padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Confronto Playlist</h1>
 
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 4px;
-    }
-
-    /* Tooltip styling */
-    .plotly-tooltip {
-        background: white;
-        border: 1px solid var(--primary-color);
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-</style>
-</head> <body> <div class="container"> <h1>Confronto Playlist</h1>
-    <div class="chart-container">
-        <h2>Brani in comune</h2>
-        <div class="plot-container" id="tracks_comparison"></div>
-        <div class="loading" id="loading_tracks">
-            <i class="fas fa-spinner"></i>
-            <p>Caricamento...</p>
+        <div class="chart-container">
+            <h2>Brani in comune</h2>
+            <div class="plot-container" id="tracks_comparison"></div>
         </div>
+
+        <div class="chart-container">
+            <h2>Artisti in comune</h2>
+            <div class="plot-container" id="common_artists"></div>
+        </div>
+
+        <div class="chart-container">
+            <h2>Confronto Popolarità Media</h2>
+            <div class="plot-container" id="popularity_comparison"></div>
+        </div>
+
+        <div class="chart-container">
+            <h2>Distribuzione dei Generi Musicali</h2>
+            <div class="plot-container" id="genre_distribution"></div>
+        </div>
+
+        <div class="chart-container">
+            <h2>Distribuzione Temporale dei Brani</h2>
+            <div class="plot-container" id="temporal_distribution"></div>
+        </div>
+
+        <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-success">Torna alle Playlist Salvate</a>
     </div>
 
-    <div class="chart-container">
-        <h2>Artisti in comune</h2>
-        <div class="plot-container" id="common_artists"></div>
-        <div class="loading" id="loading_artists">
-            <i class="fas fa-spinner"></i>
-            <p>Caricamento...</p>
-        </div>
-    </div>
-
-    <div class="chart-container">
-        <h2>Confronto Popolarità Media</h2>
-        <div class="plot-container" id="popularity_comparison"></div>
-        <div class="loading" id="loading_popularity">
-            <i class="fas fa-spinner"></i>
-            <p>Caricamento...</p>
-        </div>
-    </div>
-
-    <div class="chart-container">
-        <h2>Distribuzione dei Generi Musicali</h2>
-        <div class="plot-container" id="genre_distribution"></div>
-        <div class="loading" id="loading_genres">
-            <i class="fas fa-spinner"></i>
-            <p>Caricamento...</p>
-        </div>
-    </div>
-
-    <div class="chart-container">
-        <h2>Distribuzione Temporale dei Brani</h2>
-        <div class="plot-container" id="temporal_distribution"></div>
-        <div class="loading" id="loading_temporal">
-            <i class="fas fa-spinner"></i>
-            <p>Caricamento...</p>
-        </div>
-    </div>
-
-    <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-success">Torna alle Playlist Salvate</a>
-</div>
-
-<script>
-    var playlistData = {{ playlist_data | tojson }};
-    
-    // Custom Plotly layout
-    const darkLayout = {
-        plot_bgcolor: '#ffffff',
-        paper_bgcolor: '#ffffff',
-        font: {
-            color: '#333',
-            family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
-        },
-        margin: {
-            l: 40,
-            r: 40,
-            t: 40,
-            b: 40
-        },
-        showlegend: true,
-        legend: {
-            x: 1,
-            xanchor: 'right',
-            y: 1
-        }
-    };
-
-    // Show loading spinner
-    function showLoading(id) {
-        document.getElementById(id).style.display = 'block';
-    }
-
-    // Hide loading spinner
-    function hideLoading(id) {
-        document.getElementById(id).style.display = 'none';
-    }
-
-    // Generate tracks comparison chart
-    function generateTracksComparison(data) {
-        showLoading('loading_tracks');
-        Plotly.newPlot('tracks_comparison', [{
-            x: data.playlists.map(p => p.name),
-            y: data.trackData,
-            type: 'bar',
-            name: 'Playlist'
-        }, {
-            x: ['In Comune'],
-            y: [data.commonTracks.length],
-            type: 'bar',
-            name: 'In Comune'
-        }], darkLayout, function() {
-            hideLoading('loading_tracks');
-        });
-    }
-
-    // Generate common artists chart
-    function generateCommonArtists(data) {
-        showLoading('loading_artists');
-        Plotly.newPlot('common_artists', [{
-            x: data.playlists.map(p => p.name),
-            y: data.artistData.map(a => a.length),
-            type: 'bar',
-            name: 'Playlist'
-        }, {
-            x: ['In Comune'],
-            y: [data.commonTracks.length],
-            type: 'bar',
-            name: 'In Comune'
-        }], darkLayout, function() {
-            hideLoading('loading_artists');
-        });
-    }
-
-    // Generate popularity comparison chart
-    function generatePopularityComparison(data) {
-        showLoading('loading_popularity');
-        Plotly.newPlot('popularity_comparison', [{
-            x: data.playlists.map(p => p.name),
-            y: data.popularityData,
-            type: 'bar',
-            name: 'Popolarità Media',
-            marker: {
-                color: '#4FCE43'
-            }
-        }], darkLayout, function() {
-            hideLoading('loading_popularity');
-        });
-    }
-
-    // Generate genre distribution chart
-    function generateGenreDistribution(data) {
-        showLoading('loading_genres');
-        const traces = data.genreData.map((genreCounts, index) => ({
-            labels: Object.keys(genreCounts),
-            values: Object.values(genreCounts),
-            type: 'pie',
-            name: data.playlists[index].name,
-            marker: {
-                colors: ['#4FCE43', '#43CE7D', '#94CE43', '#4ECDC4', '#45B7D1']
-            }
-        }));
-        Plotly.newPlot('genre_distribution', traces, {
-            ...darkLayout,
-            title: 'Distribuzione dei Generi Musicali',
-            showlegend: true
-        }, function() {
-            hideLoading('loading_genres');
-        });
-    }
-
-    // Generate temporal distribution chart
-    function generateTemporalDistribution(data) {
-        showLoading('loading_temporal');
-        const traces = data.yearData.map((yearCounts, index) => ({
-            x: Object.keys(yearCounts),
-            y: Object.values(yearCounts),
-            type: 'scatter',
-            mode: 'lines+markers',
-            name: data.playlists[index].name,
-            line: {
-                color: index === 0 ? '#4FCE43' : '#43CE7D'
-            }
-        }));
-        Plotly.newPlot('temporal_distribution', traces, {
-            ...darkLayout,
-            title: 'Distribuzione Temporale dei Brani',
-            xaxis: {
-                title: 'Anno'
+    <!-- Solo i script necessari -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        var playlistData = {{ playlist_data | tojson }};
+        
+        // Layout personalizzato per Plotly
+        const darkLayout = {
+            plot_bgcolor: '#ffffff',
+            paper_bgcolor: '#ffffff',
+            font: {
+                color: '#333',
+                family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
             },
-            yaxis: {
-                title: 'Numero di Brani'
+            margin: {
+                l: 40,
+                r: 40,
+                t: 40,
+                b: 40
+            },
+            showlegend: true,
+            legend: {
+                x: 1,
+                xanchor: 'right',
+                y: 1
             }
-        }, function() {
-            hideLoading('loading_temporal');
-        });
-    }
+        };
 
-    // Initialize all charts
-    window.addEventListener('DOMContentLoaded', function() {
-        generateTracksComparison(playlistData);
-        generateCommonArtists(playlistData);
-        generatePopularityComparison(playlistData);
-        generateGenreDistribution(playlistData);
-        generateTemporalDistribution(playlistData);
-    });
-</script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</body> </html> </think>
+        // Genera grafico confronto brani
+        function generateTracksComparison(data) {
+            Plotly.newPlot('tracks_comparison', [{
+                x: data.playlists.map(p => p.name),
+                y: data.trackData,
+                type: 'bar',
+                name: 'Playlist'
+            }, {
+                x: ['In Comune'],
+                y: [data.commonTracks.length],
+                type: 'bar',
+                name: 'In Comune'
+            }], darkLayout);
+        }
+
+        // Genera grafico artisti in comune
+        function generateCommonArtists(data) {
+            Plotly.newPlot('common_artists', [{
+                x: data.playlists.map(p => p.name),
+                y: data.artistData.map(a => a.length),
+                type: 'bar',
+                name: 'Playlist'
+            }, {
+                x: ['In Comune'],
+                y: [data.commonTracks.length],
+                type: 'bar',
+                name: 'In Comune'
+            }], darkLayout);
+        }
+
+        // Genera grafico popolarità media
+        function generatePopularityComparison(data) {
+            Plotly.newPlot('popularity_comparison', [{
+                x: data.playlists.map(p => p.name),
+                y: data.popularityData,
+                type: 'bar',
+                name: 'Popolarità Media',
+                marker: {
+                    color: '#4FCE43'
+                }
+            }], darkLayout);
+        }
+
+        // Genera grafico distribuzione generi
+        function generateGenreDistribution(data) {
+            const traces = data.genreData.map((genreCounts, index) => ({
+                labels: Object.keys(genreCounts),
+                values: Object.values(genreCounts),
+                type: 'pie',
+                name: data.playlists[index].name,
+                marker: {
+                    colors: ['#4FCE43', '#43CE7D', '#94CE43', '#4ECDC4', '#45B7D1']
+                }
+            }));
+            Plotly.newPlot('genre_distribution', traces, {
+                ...darkLayout,
+                title: 'Distribuzione dei Generi Musicali',
+                showlegend: true
+            });
+        }
+
+        // Genera grafico distribuzione temporale
+        function generateTemporalDistribution(data) {
+            const traces = data.yearData.map((yearCounts, index) => ({
+                x: Object.keys(yearCounts),
+                y: Object.values(yearCounts),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: data.playlists[index].name,
+                line: {
+                    color: index === 0 ? '#4FCE43' : '#43CE7D'
+                }
+            }));
+            Plotly.newPlot('temporal_distribution', traces, {
+                ...darkLayout,
+                title: 'Distribuzione Temporale dei Brani',
+                xaxis: {
+                    title: 'Anno'
+                },
+                yaxis: {
+                    title: 'Numero di Brani'
+                }
+            });
+        }
+
+        // Inizializza tutti i grafici
+        window.addEventListener('DOMContentLoaded', function() {
+            generateTracksComparison(playlistData);
+            generateCommonArtists(playlistData);
+            generatePopularityComparison(playlistData);
+            generateGenreDistribution(playlistData);
+            generateTemporalDistribution(playlistData);
+        });
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html
