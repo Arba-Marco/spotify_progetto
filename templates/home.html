@@ -152,6 +152,141 @@
             animation: fadeIn 1s forwards;
         }
 
+        /* Stile per la sezione delle raccomandazioni */
+        .recommendations-section {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .recommendations-section h2 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .recommendations-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .recommendation-item {
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            align-items: center;
+            color: #fff;
+        }
+
+        .recommendation-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn.btn-primary.btn-sm {
+            margin-left: 10px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+
+        /* Stile per le raccomandazioni */
+.recommendations-section form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recommendations-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+}
+
+.recommendation-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.recommendation-item input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.button-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+/* Stile per le raccomandazioni */
+.recommendations-section form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recommendations-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+}
+
+.recommendation-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.recommendation-item input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.button-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -257,26 +392,60 @@
             <button type="submit">Cerca</button>
         </form>
 
-        <!-- RISULTATI RICERCA -->
-        {% if search_results %}
-        <div class="search-results">
-            <h2>Risultati della ricerca - Playlist</h2>
-            <ul>
-                {% for playlist in search_results %}
-                    <li>
-                        <strong>{{ playlist['name'] }}</strong> 
-                        {% if playlist['tracks'] %}
-                            ({{ playlist['tracks']['total'] }} brani)
-                        {% else %}
-                            (0 brani)
-                        {% endif %}
-                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza</a>
-                        <a href="{{ url_for('home.save_playlist', playlist_id=playlist['id']) }}" class="btn btn-save-playlist">Salva Playlist</a>
-                    </li>
-                {% endfor %}
-            </ul>
+<!-- RISULTATI RICERCA -->
+{% if search_results %}
+<div class="search-results">
+    <h2>Risultati della ricerca - Playlist</h2>
+    <ul class="playlist-results">
+        {% for playlist in search_results %}
+            <li class="playlist-item">
+                <strong>{{ playlist['name'] }}</strong> 
+                {% if playlist['tracks'] %}
+                    ({{ playlist['tracks']['total'] }} brani)
+                {% else %}
+                    (0 brani)
+                {% endif %}
+                <div class="button-container">
+                    <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary">Visualizza</a>
+                    <a href="{{ url_for('home.save_playlist', playlist_id=playlist['id']) }}" class="btn btn-success">Salva Playlist</a>
+                    <a href="{{ playlist['external_urls']['spotify'] }}" target="_blank" class="btn btn-info">Ascolta</a>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+<!-- LINK ALLA PLAYLIST DELLA SESSIONE -->
+<a href="{{ url_for('home.view_session_playlist') }}" class="btn btn-info">Visualizza Playlist della Sessione</a>
+
+<!-- RACCOMANDAZIONI -->
+{% if recommendations %}
+<div class="recommendations-section">
+    <h2>Raccomandazioni</h2>
+    <form action="{{ url_for('home.save_recommendations') }}" method="POST">
+        <div class="recommendations-container">
+            {% for track in recommendations %}
+                <div class="recommendation-item">
+                    <input type="checkbox" name="track_uri" value="{{ track.external_urls.spotify }}" id="track-{{ loop.index }}">
+                    <label for="track-{{ loop.index }}">
+                        <strong>{{ track.name }}</strong> by 
+                        {% for artist in track.artists %}
+                            {{ artist.name }}
+                            {% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </label>
+                    <div class="button-container">
+                        <a href="{{ track.external_urls.spotify }}" target="_blank" class="btn btn-primary">Ascolta</a>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
-        {% endif %}
+        <div class="save-button-container">
+            <button type="submit" class="btn btn-success">Salva nella playlist 'Brani Consigliati'</button>
+        </div>
+    </form>
+</div>
+{% endif %}
 
         <!-- LINK PLAYLIST SALVATE -->
         <a href="{{ url_for('home.view_saved_playlists') }}" class="btn btn-secondary">Playlist Salvate</a>

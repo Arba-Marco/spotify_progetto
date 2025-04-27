@@ -235,37 +235,120 @@ def get_recommendations():
 
 @home_bp.route('/save_recommendations', methods=['POST'])
 def save_recommendations():
-    """Salva i brani consigliati in una playlist"""
+    """Salva le canzoni consigliate in una playlist chiamata 'Brani Consigliati'"""
     if 'token_info' not in session:
-        flash("Devi effettuare l'accesso con Spotify per salvare i suggerimenti", "warning")
-        return redirect(url_for('home.search_playlist'))
+        # Se non sei autenticato, salva le canzoni nella sessione
+        track_uris = request.form.getlist('track_uri')
+        if not track_uris:
+            flash("Nessuna canzone selezionata", "warning")
+            return redirect(url_for('home.search_playlist'))
+        
+        # Verifica che le URIs siano nel formato corretto
+        valid_uris = []
+        for uri in track_uris:
+            if 'spotify:track:' in uri:
+                valid_uris.append(uri)
+        
+        if not valid_uris:
+            flash("Nessuna canzone valida selezionata", "warning")
+            return redirect(url_for('home.search_playlist'))
+        
+        # Salva le canzoni nella sessione
+        if 'recommended_tracks' not in session:
+            session['recommended_tracks'] = []
+        
+        # Aggiungi le nuove canzoni alla sessione
+        for uri in valid_uris:
+            track_id = uri.split(':')[-1]
+            if track_id not in session['recommended_tracks']:
+                session['recommended_tracks'].append(track_id)
+        
+        session.modified = True
+        flash(f"{len(valid_uris)} canzoni salvate nella sessione!", "success")
+        return redirect(url_for('home.view_session_playlist'))
     
-    sp = spotipy.Spotify(auth=session['token_info']['access_token'])
-    track_uris = request.form.getlist('track_uris')
+    else:
+        # Se sei autenticato, salva le canzoni nella tua playlist Spotify
+        sp = spotipy.Spotify(auth=session['token_info']['access_token'])
+        track_uris = request.form.getlist('track_uri')
+        
+        if not track_uris:
+            flash("Nessuna canzone selezionata", "warning")
+            return redirect(url_for('home.search_playlist'))
+        
+        try:
+            # Filtra le URIs valide
+            valid_uris = [uri for uri in track_uris if 'spotify:track:' in uri]
+            
+            if not valid_uris:
+                flash("Nessuna canzone valida selezionata", "warning")
+                return redirect(url_for('home.search_playlist'))
+            
+            # Verifica se esiste già una playlist chiamata 'Brani Consigliati'
+            user_playlists = sp.current_user_playlists(limit=50)['items']
+            existing_playlist = next((p for p in user_playlists if p['name'] == 'Brani Consigliati'), None)
+            
+            if existing_playlist:
+                playlist_id = existing_playlist['id']
+                # Aggiungi le canzoni alla playlist esistente
+                sp.playlist_add_items(playlist_id, valid_uris)
+            else:
+                # Crea una nuova playlist
+                playlist_name = "Brani Consigliati"
+                new_playlist = sp.user_playlist_create(
+                    user=sp.current_user()['id'],
+                    name=playlist_name,
+                    public=True,
+                    description="Canzoni consigliate dalla tua ricerca"
+                )
+                playlist_id = new_playlist['id']
+                # Aggiungi le canzoni alla nuova playlist
+                sp.playlist_add_items(playlist_id, valid_uris)
+            
+            flash(f"{len(valid_uris)} canzoni salvate nella playlist 'Brani Consigliati'!", "success")
+            return redirect(url_for('home.view_playlist', playlist_id=playlist_id))
+        
+        except Exception as e:
+            flash(f"Errore nel salvataggio: {str(e)}", "danger")
+            return redirect(url_for('home.search_playlist'))
+
+@home_bp.route('/view_session_playlist')
+def view_session_playlist():
+    """Visualizza le canzoni salvate nella sessione"""
+    sp = get_spotify_client()
+    recommended_tracks = session.get('recommended_tracks', [])
     
-    if not track_uris:
-        flash("Nessun brano selezionato", "warning")
+    if not recommended_tracks:
+        flash("Nessuna canzone salvata nella sessione", "warning")
         return redirect(url_for('home.search_playlist'))
     
     try:
-        # Crea una nuova playlist
-        user_id = sp.current_user()['id']
-        playlist_name = "Raccomandazioni da ricerca - " + datetime.now().strftime("%d/%m/%Y")
-        new_playlist = sp.user_playlist_create(
-            user=user_id,
-            name=playlist_name,
-            public=True,
-            description="Brani raccomandati basati sulla tua ricerca"
-        )
+        # Verifica che tutti i track_id siano validi
+        valid_track_ids = []
+        for track_id in recommended_tracks:
+            if 'spotify:track:' in track_id:
+                valid_track_ids.append(track_id)
         
-        # Aggiungi i brani
-        sp.playlist_add_items(new_playlist['id'], track_uris)
+        if not valid_track_ids:
+            flash("Nessuna canzone valida nella sessione", "warning")
+            return redirect(url_for('home.search_playlist'))
         
-        flash(f"{len(track_uris)} brani salvati in una nuova playlist!", "success")
-        return redirect(url_for('home.view_playlist', playlist_id=new_playlist['id']))
+        # Recupera i dettagli delle canzoni
+        tracks = []
+        for track_id in valid_track_ids:
+            track = sp.track(track_id)
+            if track:
+                tracks.append({
+                    'id': track['id'],
+                    'name': track['name'],
+                    'artists': track['artists'],
+                    'external_urls': track['external_urls']
+                })
+        
+        return render_template('session_playlist.html', tracks=tracks)
     
     except Exception as e:
-        flash(f"Errore nel salvataggio: {str(e)}", "danger")
+        flash(f"Errore nel caricamento delle canzoni: {str(e)}", "danger")
         return redirect(url_for('home.search_playlist'))
 
 @home_bp.route('/share_playlist/<playlist_id>')
@@ -701,50 +784,40 @@ def search_playlist():
                     if p is not None and 'tracks' in p and p['tracks'] is not None and 'total' in p['tracks'] and p['tracks']['total'] > 0
                 ]
                 
-                # Se ci sono risultati di ricerca, ottieni tracce e artisti per le raccomandazioni
-                if search_results:
-                    # Questo codice ottiene tracce da tutte le playlist trovate
-                    seed_tracks = []
-                    seed_artists = []
-                    for playlist in search_results:
-                        # Ottieni le prime 3 tracce di ogni playlist
-                        tracks = sp.playlist_tracks(playlist['id'], limit=3)['items']
-                        for track in tracks:
-                            if track and 'track' in track:
-                                track_id = track['track']['id']
-                                if track_id not in seed_tracks:
-                                    seed_tracks.append(track_id)
-                                    if len(seed_tracks) >= 5:  # Limite di Spotify per seed_tracks
-                                        break
-                                
-                                # Aggiungi anche gli artisti delle tracce
-                                for artist in track['track']['artists']:
-                                    artist_id = artist['id']
-                                    if artist_id not in seed_artists:
-                                        seed_artists.append(artist_id)
-                                        if len(seed_artists) >= 5:
-                                            break
-                        if len(seed_tracks) >= 5 or len(seed_artists) >= 5:
-                            break
-                    
-                    # Ottieni raccomandazioni basate sui seed
-                    if seed_tracks or seed_artists:
-                        recommendations_response = sp.recommendations(
-                            seed_tracks=seed_tracks[:5],
-                            seed_artists=seed_artists[:5],
-                            limit=20
-                        )
-                        recommendations = recommendations_response.get('tracks', [])
-                    else:
-                        # Se non ci sono abbastanza tracce/artisti, usa la query di ricerca come base
-                        recommendations_response = sp.recommendations(
-                            query=query,
-                            limit=20
-                        )
-                        recommendations = recommendations_response.get('tracks', [])
+                # Se non sei autenticato, usa le raccomandazioni basate sulla query
+                if 'token_info' not in session:
+                    try:
+                        # Cerca una playlist pubblica con un nome simile alla query
+                        public_playlists = sp.search(q=f"{query} playlist", type='playlist', limit=1)['playlists']['items']
+                        if public_playlists:
+                            public_playlist_id = public_playlists[0]['id']
+                            # Ottieni le prime 5 tracce della playlist pubblica
+                            public_tracks = sp.playlist_tracks(public_playlist_id, limit=5)['items']
+                            recommendations = [{
+                                'name': track['track']['name'],
+                                'artists': track['track']['artists'],
+                                'external_urls': {'spotify': track['track']['external_urls']['spotify']}
+                            } for track in public_tracks]
+                        else:
+                            # Se non trovi playlist, cerca canzoni dell'artista
+                            tracks = sp.search(q=f"artist:{query}", type='track', limit=5)['tracks']['items']
+                            recommendations = [{
+                                'name': track['name'],
+                                'artists': track['artists'],
+                                'external_urls': {'spotify': track['external_urls']['spotify']}
+                            } for track in tracks]
+                    except Exception as e:
+                        print(f"Errore nel recupero delle raccomandazioni pubbliche: {e}")
+                else:
+                    # Se autenticato, usa le raccomandazioni di Spotify
+                    recommendations_response = sp.recommendations(
+                        query=query,
+                        limit=5
+                    )
+                    recommendations = recommendations_response.get('tracks', [])
                 
             except Exception as e:
-                print("Errore nella ricerca:", e)
+                print(f"Errore nella ricerca: {e}")
                 flash(f"Errore nella ricerca: {str(e)}", "danger")
     
     return render_template('home.html', 
@@ -752,7 +825,7 @@ def search_playlist():
                          recommendations=recommendations,
                          user_info=session.get('user_info'), 
                          playlists=session.get('playlists', []))
-
+    
 @home_bp.route('/playlist_tracks/<playlist_id>')
 def playlist_tracks(playlist_id):
     """Mostra i brani di una playlist specifica anche se l'utente non è loggato."""

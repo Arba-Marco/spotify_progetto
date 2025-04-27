@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist della Sessione</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .playlist-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .track-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .track-info {
+            flex-grow: 1;
+            margin-right: 20px;
+        }
+        .btn {
+            margin: 5px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background-color: #006400;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #004d00;
+        }
+    </style>
+</head>
+<body>
+    <div class="playlist-container">
+        <h1>Playlist della Sessione</h1>
+        <p>Queste sono le canzoni che hai salvato durante la tua sessione.</p>
+        {% if tracks %}
+        <div class="tracks-list">
+            {% for track in tracks %}
+            <div class="track-item">
+                <div class="track-info">
+                    <strong>{{ track.name }}</strong><br>
+                    {% for artist in track.artists %}
+                        {{ artist.name }}
+                        {% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="buttons">
+                    <a href="{{ track.external_urls.spotify }}" class="btn btn-primary">Ascolta</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>Nessuna canzone salvata.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
