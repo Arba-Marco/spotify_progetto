@@ -404,97 +404,6 @@ def playlist_analysis(playlist_id):
     tracks_data = []
 
     try:
-        # Ottieni tutte le tracce della playlist
-        tracks = []
-        results = sp.playlist_tracks(playlist_id)
-        while results:
-            tracks.extend(results.get('items', []))
-            if results.get('next'):
-                results = sp.next(results)
-            else:
-                break
-
-        # Elabora i dati delle tracce
-        for track in tracks:
-            if not track or 'track' not in track or track['track'] is None:
-                continue
-
-            track_info = track['track']
-            artist_info = track_info.get('artists', [{}])[0]
-            artist_id = artist_info.get('id')
-            genre = 'Unknown'
-
-            if artist_id:
-                try:
-                    # Ottieni il primo genere dell'artista
-                    artist_data = sp.artist(artist_id)
-                    genres = artist_data.get('genres', [])
-                    genre = genres[0] if genres else 'Unknown'
-                except Exception as e:
-                    print(f"Errore nel recupero del genere per l'artista {artist_id}: {e}")
-
-            # Crea un dizionario con i dati essenziali
-            track_data = {
-                'track_name': track_info.get('name', 'Sconosciuto'),
-                'artist_name': artist_info.get('name', 'Sconosciuto'),
-                'album_name': track_info.get('album', {}).get('name', 'Sconosciuto'),
-                'genre': genre,
-                'release_year': track_info.get('album', {}).get('release_date', '').split('-')[0] if track_info.get('album', {}).get('release_date') else None,
-                'duration_min': round(track_info.get('duration_ms', 0) / 60000, 2),
-                'popularity': track_info.get('popularity', 0)
-            }
-            tracks_data.append(track_data)
-
-        if not tracks_data:
-            flash("Nessuna traccia trovata nella playlist.", "warning")
-            return redirect(url_for('home.view_saved_playlists'))
-
-        # Crea un DataFrame con i dati
-        df = pd.DataFrame(tracks_data)
-
-        # Ottieni i dati per i grafici
-        top_artists = df['artist_name'].value_counts().head(5)
-        top_albums = df['album_name'].value_counts().head(5)
-        genre_distribution = df['genre'].value_counts()
-        release_counts = df['release_year'].value_counts().sort_index()
-
-        # Crea i grafici con Plotly
-        year_fig = px.bar(x=release_counts.index, y=release_counts.values,
-                         labels={'x': 'Anno di Pubblicazione', 'y': 'Numero di Brani'},
-                         title='Brani Pubblicati per Anno')
-
-        artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values,
-                           labels={'x': 'Artista', 'y': 'Numero di brani'})
-
-        album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values,
-                          labels={'x': 'Album', 'y': 'Numero di brani'})
-
-        genre_fig = px.pie(genre_distribution, names=genre_distribution.index,
-                          values=genre_distribution.values, title='Distribuzione dei generi musicali')
-
-        popularity_fig = px.histogram(df, x='popularity',
-                                     nbins=20,
-                                     title="Distribuzione della Popolarità dei Brani",
-                                     labels={'popularity': 'Popolarità'})
-
-        duration_fig = px.histogram(df, x='duration_min',
-                                   title='Distribuzione della Durata dei Brani nella Playlist')
-
-        return render_template('playlist_analysis.html',
-                             artist_fig=artist_fig.to_html(full_html=False),
-                             album_fig=album_fig.to_html(full_html=False),
-                             genre_fig=genre_fig.to_html(full_html=False),
-                             year_fig=year_fig.to_html(full_html=False),
-                             duration_fig=duration_fig.to_html(full_html=False),
-                             popularity_fig=popularity_fig.to_html(full_html=False))
-
-    except Exception as e:
-        flash(f"Errore durante l'analisi della playlist: {e}", "danger")
-        return redirect(url_for('home.view_saved_playlists'))
-    sp = get_spotify_client()
-    tracks_data = []
-
-    try:
         # Retrieve all tracks using pagination
         tracks = []
         results = sp.playlist_tracks(playlist_id)
@@ -549,6 +458,11 @@ def playlist_analysis(playlist_id):
         genre_distribution = df['genre'].value_counts()
         release_counts = df['release_year'].value_counts().sort_index()
 
+        # Calculate the average popularity per release year
+        df['release_year'] = pd.to_numeric(df['release_year'])
+        yearly_popularity = df.groupby('release_year')['popularity'].mean().reset_index()
+        yearly_popularity = yearly_popularity.sort_values(by='release_year')
+
         # Create visualizations
         year_fig = px.bar(x=release_counts.index, y=release_counts.values,
                          labels={'x': 'Release Year', 'y': 'Number of Tracks'},
@@ -571,99 +485,25 @@ def playlist_analysis(playlist_id):
         duration_fig = px.histogram(df, x='duration_min',
                                    title='Track Duration Distribution')
 
+        # Create the popularity evolution line chart
+        popularity_fig_time = px.line(yearly_popularity, 
+                                     x='release_year', 
+                                     y='popularity',
+                                     labels={'release_year': 'Release Year', 
+                                             'popularity': 'Average Popularity'},
+                                     title='Evolution of Popularity Over Time')
+
         return render_template('playlist_analysis.html',
                              artist_fig=artist_fig.to_html(full_html=False),
                              album_fig=album_fig.to_html(full_html=False),
                              genre_fig=genre_fig.to_html(full_html=False),
                              year_fig=year_fig.to_html(full_html=False),
                              duration_fig=duration_fig.to_html(full_html=False),
-                             popularity_fig=popularity_fig.to_html(full_html=False))
+                             popularity_fig=popularity_fig.to_html(full_html=False),
+                             popularity_fig_time=popularity_fig_time.to_html(full_html=False))
 
     except Exception as e:
         flash(f"Error during playlist analysis: {e}", "danger")
-        return redirect(url_for('home.view_saved_playlists'))
-    sp = get_spotify_client()
-    tracks_data = []
-
-    try:
-        # Ottieni le tracce della playlist
-        tracks_response = sp.playlist_tracks(playlist_id)
-        tracks = tracks_response.get('items', []) if tracks_response else []
-
-        # Elabora i dati delle tracce in modo più efficiente
-        for track in tracks:
-            if not track or 'track' not in track or track['track'] is None:
-                continue
-
-            track_info = track['track']
-            artist_info = track_info.get('artists', [{}])[0]
-            artist_id = artist_info.get('id')
-            genre = 'Unknown'
-
-            if artist_id:
-                try:
-                    artist_data = sp.artist(artist_id)
-                    genres = artist_data.get('genres', [])
-                    genre = genres[0] if genres else 'Unknown'
-                except Exception as e:
-                    print(f"Errore nel recupero genere artista {artist_id}: {e}")
-
-            track_data = {
-                'track_name': track_info.get('name', 'Sconosciuto'),
-                'artist_name': artist_info.get('name', 'Sconosciuto'),
-                'album_name': track_info.get('album', {}).get('name', 'Sconosciuto'),
-                'genre': genre,
-                'release_year': track_info.get('album', {}).get('release_date', '').split('-')[0] if track_info.get('album', {}).get('release_date') else None,
-                'duration_min': round(track_info.get('duration_ms', 0) / 60000, 2),
-                'popularity': track_info.get('popularity', 0)
-            }
-            tracks_data.append(track_data)
-
-        if not tracks_data:
-            flash("Nessuna traccia trovata nella playlist.", "warning")
-            return redirect(url_for('home.view_saved_playlists'))
-
-        # Crea un DataFrame con i dati essenziali
-        df = pd.DataFrame(tracks_data)
-
-        # Ottieni i dati per i grafici in modo efficiente
-        top_artists = df['artist_name'].value_counts().head(5)
-        top_albums = df['album_name'].value_counts().head(5)
-        genre_distribution = df['genre'].value_counts()
-        release_counts = df['release_year'].value_counts().sort_index()
-
-        # Crea i grafici con Plotly
-        year_fig = px.bar(x=release_counts.index, y=release_counts.values,
-                         labels={'x': 'Anno di Pubblicazione', 'y': 'Numero di Brani'},
-                         title='Brani Pubblicati per Anno')
-
-        artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values,
-                           labels={'x': 'Artista', 'y': 'Numero di brani'})
-
-        album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values,
-                          labels={'x': 'Album', 'y': 'Numero di brani'})
-
-        genre_fig = px.pie(genre_distribution, names=genre_distribution.index,
-                          values=genre_distribution.values, title='Distribuzione dei generi musicali')
-
-        popularity_fig = px.histogram(df, x='popularity',
-                                     nbins=20,
-                                     title="Distribuzione della Popolarità dei Brani",
-                                     labels={'popularity': 'Popolarità'})
-
-        duration_fig = px.histogram(df, x='duration_min',
-                                   title='Distribuzione della Durata dei Brani nella Playlist')
-
-        return render_template('playlist_analysis.html',
-                             artist_fig=artist_fig.to_html(full_html=False),
-                             album_fig=album_fig.to_html(full_html=False),
-                             genre_fig=genre_fig.to_html(full_html=False),
-                             year_fig=year_fig.to_html(full_html=False),
-                             duration_fig=duration_fig.to_html(full_html=False),
-                             popularity_fig=popularity_fig.to_html(full_html=False))
-
-    except Exception as e:
-        flash(f"Errore durante l'analisi della playlist: {e}", "danger")
         return redirect(url_for('home.view_saved_playlists'))
 
 
